@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Metrics Pro</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for pie chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-gray-300 flex flex-col min-h-screen">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-black bg-opacity-80 backdrop-blur-md shadow-lg sticky top-0 z-40 border-b border-gray-800">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" data-page="home" class="flex items-center gap-2">
+                        <span class="font-bold text-xl primary-text">Trade Metrics</span>
+                    </a>
+                </div>
+                <div class="hidden md:block">
+                    <div id="desktop-nav" class="ml-10 flex items-baseline space-x-1">
+                        <a href="#" data-page="home" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="#" data-page="intraday" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">Intraday</a>
+                        <a href="#" data-page="swing" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">Swing</a>
+                        <a href="#" data-page="investment" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">Investment</a>
+                        <a href="#" data-page="analyzer" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">Analyzer</a>
+                        <a href="#" data-page="portfolio" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+                        <a href="#" data-page="watchlist" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">Watchlist</a>
+                        <a href="#" data-page="news" class="nav-link text-gray-300 hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium">News</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#" data-page="home" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">Home</a>
+                <a href="#" data-page="intraday" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">Intraday</a>
+                <a href="#" data-page="swing" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">Swing</a>
+                <a href="#" data-page="investment" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">Investment</a>
+                <a href="#" data-page="analyzer" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">Analyzer</a>
+                <a href="#" data-page="portfolio" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">Portfolio</a>
+                <a href="#" data-page="watchlist" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">Watchlist</a>
+                <a href="#" data-page="news" class="nav-link text-gray-300 hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium">News</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex-grow w-full">
+        <!-- Home Page -->
+        <div id="home" class="page-content">
+            <header class="text-white text-center py-16 md:py-24">
+                <div class="flex justify-center fade-in-up">
+                     <img src="Assets/logo.png" alt="Trade Metrics Logo" class="h-48 md:h-64">
+                </div>
+                <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mt-4 fade-in-up delay-1">The <span class="primary-text">Gold Standard</span> in Trading Analytics</h1>
+                <p class="mt-4 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto fade-in-up delay-2">Unlock premium tools for intelligent analysis and portfolio management.</p>
+                
+                <!-- Market Tickers -->
+                <div id="market-tickers" class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto fade-in-up delay-3">
+                    <!-- Tickers will be injected here by JavaScript -->
+                </div>
+
+                <a href="#" data-page="analyzer" class="nav-link mt-8 inline-block btn-primary py-3 px-6 rounded-md font-bold text-lg fade-in-up delay-3 pulse-animate">Start Analyzing</a>
+            </header>
+            <section id="features" class="mt-20">
+                <h2 class="text-3xl font-bold text-center mb-12 primary-text">Core Features</h2>
+                <div class="grid md:grid-cols-3 gap-12 text-center">
+                    <div class="feature-card fade-in-up delay-1">
+                        <div class="flex justify-center mb-4"><svg class="w-12 h-12 primary-text" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M12 8h.01M15 8h.01M15 14h.01M18 17h.01M18 14h.01M18 11h.01M18 8h.01"></path></svg></div>
+                        <h3 class="text-xl font-semibold mb-2 text-white">Trade Analyzer</h3><p class="text-gray-400">Calculate profit/loss, stop loss, and target prices with our intuitive calculator to assess risk and reward before you trade.</p>
+                    </div>
+                    <div class="feature-card fade-in-up delay-2">
+                        <div class="flex justify-center mb-4"><svg class="w-12 h-12 primary-text" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>
+                        <h3 class="text-xl font-semibold mb-2 text-white">Portfolio Management</h3><p class="text-gray-400">Add your stocks, track their performance, and calculate your overall portfolio health to stay on top of your investments.</p>
+                    </div>
+                    <div class="feature-card fade-in-up delay-3">
+                        <div class="flex justify-center mb-4"><svg class="w-12 h-12 primary-text" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
+                        <h3 class="text-xl font-semibold mb-2 text-white">AI-Powered Insights</h3><p class="text-gray-400">Leverage the Gemini API for intelligent analysis of your portfolio and trades, providing you with a competitive edge.</p>
+                    </div>
+                </div>
+            </section>
+            <section id="about" class="mt-20 py-12 px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold mb-4 primary-text">About Trade Metrics</h2>
+                    <p class="text-lg text-gray-400 max-w-3xl mx-auto">Trade Metrics was born from a simple idea: trading should be clear, simple, and data-driven. We provide a focused set of tools designed to help new and experienced traders alike to analyze their positions, manage risk, and understand their portfolio's performance. Our goal is to cut through the noise and give you the metrics that matter.</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Intraday, Swing, Investment Pages -->
+        <div id="intraday" class="page-content p-8">
+            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Intraday Trading Insights</h2>
+            <div class="text-center text-gray-400 mt-16">
+                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-xl mt-4">This feature is currently under development.</p>
+                <p class="mt-2">Stay tuned for future updates!</p>
+            </div>
+        </div>
+        <div id="swing" class="page-content p-8">
+            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Swing Trading Analysis</h2>
+            <div class="max-w-4xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <input type="text" id="swingStockName" class="rounded-md shadow-sm sm:text-sm" placeholder="Stock Name (e.g., Tata Steel)">
+                    <input type="text" id="swingExchange" class="rounded-md shadow-sm sm:text-sm" placeholder="Stock Exchange (e.g., NSE)">
+                </div>
+                <div id="drop-area" class="w-full h-48 rounded-lg flex items-center justify-center text-center text-gray-500 cursor-pointer">
+                    <div id="drop-prompt">
+                        <p>Drag & drop a chart image here, or click to select file</p>
+                        <p class="text-sm mt-1">(You can also paste from clipboard)</p>
+                    </div>
+                    <img id="image-preview" class="hidden max-h-full max-w-full rounded-lg">
+                </div>
+                <input type="file" id="file-input" class="hidden" accept="image/*">
+                <button id="analyzePatternBtn" class="w-full mt-6 btn-ai py-2 px-4 rounded-md">Analyze Pattern with AI</button>
+                <div id="aiSwingAnalysisResult" class="mt-6 border-t border-gray-800 pt-6 hidden"></div>
+            </div>
+            <div class="max-w-4xl mx-auto mt-12">
+                <h3 class="text-2xl font-bold mb-4 text-white">Understanding Swing Trading</h3>
+                <p class="text-gray-400 mb-6">Swing trading is a strategic approach where traders aim to profit from price "swings" over a few days to several weeks. Unlike day traders, swing traders hold positions overnight, and unlike long-term investors, they seek to capitalize on shorter-term market momentum rather than long-term value.</p>
+                <h3 class="text-2xl font-bold mb-4 text-white">Popular Swing Trading Strategies</h3>
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-daa520">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white text-lg">Trend Trading</h4>
+                            <p class="text-gray-400 text-sm mt-1">This is the most common strategy. A trader identifies a stock in a clear uptrend (making higher highs and higher lows) or downtrend and trades in the direction of that trend. The goal is to buy on pullbacks in an uptrend and sell on rallies in a downtrend.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-daa520">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white text-lg">Breakout and Breakdown Trading</h4>
+                            <p class="text-gray-400 text-sm mt-1">A "breakout" occurs when a stock's price moves above a resistance level, often signaling the start of an upward move. A "breakdown" is the opposite, where the price falls below a support level. Swing traders enter positions as soon as the price breaks these key levels.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-daa520">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white text-lg">Mean Reversion</h4>
+                            <p class="text-gray-400 text-sm mt-1">This strategy is based on the theory that stock prices tend to revert to their historical average (or mean). Traders look for stocks that have made a significant move away from their mean and bet on them returning to it.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="investment" class="page-content p-8">
+            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Long-Term Investment Advice</h2>
+            <div class="text-center text-gray-400 mt-16">
+                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-xl mt-4">This feature is currently under development.</p>
+                <p class="mt-2">Stay tuned for future updates!</p>
+            </div>
+        </div>
+
+        <!-- Trade Analyzer Page -->
+        <div id="analyzer" class="page-content">
+            <h2 class="text-3xl font-bold text-center mb-12 primary-text">Trade Analyzer</h2>
+            <div class="space-y-12">
+                <!-- Profit/Loss Calculator -->
+                <div class="max-w-2xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
+                    <h3 class="text-2xl font-bold text-center mb-6 text-white">Profit / Loss Calculator</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label for="plInvestedAmount" class="block text-sm font-medium text-gray-400">Invested Amount (₹)</label><input type="number" id="plInvestedAmount" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., 50000"></div>
+                        <div><label for="plBuyPrice" class="block text-sm font-medium text-gray-400">Buy Price (₹)</label><input type="number" id="plBuyPrice" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., 100"></div>
+                        <div class="md:col-span-2"><label for="plSellPrice" class="block text-sm font-medium text-gray-400">Sell Price (₹)</label><input type="number" id="plSellPrice" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., 105"></div>
+                    </div>
+                    <div class="mt-6"><button id="calculatePl" class="w-full btn-primary py-2 px-4 rounded-md">Calculate P/L</button></div>
+                    <div id="plResult" class="mt-6 border-t border-gray-800 pt-6 hidden">
+                        <h4 class="text-lg font-semibold mb-4 text-center text-white">P/L Result</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span class="font-medium">Total Value After Selling</span><span id="plTotalValue" class="font-bold"></span></div>
+                            <div class="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span class="font-medium">Net Profit/Loss</span><span id="plAmount" class="font-bold"></span></div>
+                            <div class="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span class="font-medium">Net Profit/Loss %</span><span id="plPercentage" class="font-bold"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Target & Stop-Loss Calculator -->
+                <div class="max-w-2xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
+                    <h3 class="text-2xl font-bold text-center mb-6 text-white">Position Sizing & Risk Calculator</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label for="tsCapital" class="block text-sm font-medium text-gray-400">Capital to Invest (₹)</label><input type="number" id="tsCapital" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., 25000"></div>
+                        <div><label for="tsCurrentPrice" class="block text-sm font-medium text-gray-400">Current Price (₹)</label><input type="number" id="tsCurrentPrice" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., 150"></div>
+                        <div><label for="tsRiskPercent" class="block text-sm font-medium text-gray-400">Risk (%)</label><input type="number" id="tsRiskPercent" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., 2"></div>
+                        <div><label for="tsRewardMultiplier" class="block text-sm font-medium text-gray-400">Risk:Reward Multiplier</label><input type="number" id="tsRewardMultiplier" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., 2 (for 1:2)"></div>
+                    </div>
+                    <div class="mt-6"><button id="calculateTs" class="w-full btn-primary py-2 px-4 rounded-md">Calculate</button></div>
+                    <div id="tsResult" class="mt-6 border-t border-gray-800 pt-6 hidden">
+                        <h4 class="text-lg font-semibold mb-4 text-center text-white">Calculation Result</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span class="font-medium">Quantity to Buy</span><span id="quantityToBuy" class="font-bold text-yellow-400"></span></div>
+                            <div class="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span class="font-medium">Stop-Loss Price</span><span id="stopLossPrice" class="font-bold text-red-400"></span></div>
+                            <div class="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span class="font-medium">Target Price</span><span id="targetPrice" class="font-bold text-green-400"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Management Page -->
+        <div id="portfolio" class="page-content">
+            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Portfolio Management</h2>
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <button id="addStockBtn" class="w-full sm:w-auto flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">Add Holding</button>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4 text-white">Current Holdings</h3>
+                    <div id="portfolioList" class="space-y-2"></div>
+                </div>
+                <div class="p-6 md:p-8 rounded-lg border border-gray-800 bg-black relative">
+                    <button id="checkHealthBtn" class="absolute top-4 right-4 text-gray-400 hover:text-daa520 transition-colors" title="Check Portfolio Health with AI">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 16.663c.193.193.446.29.707.29s.514-.097.707-.29l3.536-3.536m-4.95-4.95a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg>
+                    </button>
+                    <h3 class="text-xl font-bold text-center mb-4 text-white">Portfolio Overview</h3>
+                    <div id="portfolioHealthResult" class="text-center mb-6 space-y-2">
+                        <div>
+                            <p class="text-sm text-gray-400">Total Investment</p>
+                            <p id="portfolioInvestment" class="font-bold text-2xl">₹0.00</p>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-center mt-8 mb-4 text-white">Diversification</h3>
+                    <div class="relative h-64">
+                        <canvas id="portfolioChart"></canvas>
+                    </div>
+                    <hr class="divider my-8">
+                    <h3 class="text-xl font-bold text-center mb-4 text-white">Trade History</h3>
+                    <div id="tradeHistory" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Watchlist Page -->
+        <div id="watchlist" class="page-content">
+            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Watchlist</h2>
+            <div class="max-w-2xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
+                <form id="watchlistForm" class="flex flex-col sm:flex-row gap-4 mb-6">
+                    <input type="text" id="watchlistStockName" class="flex-grow rounded-md shadow-sm sm:text-sm" placeholder="Stock Name (e.g., Tata Steel)" required>
+                    <input type="number" id="watchlistTargetPrice" class="w-full sm:w-40 rounded-md shadow-sm sm:text-sm" placeholder="Target Price (₹)" required>
+                    <button type="submit" class="w-full sm:w-auto btn-primary py-2 px-4 rounded-md">Add to Watchlist</button>
+                </form>
+                <div id="watchlistContainer" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- News Page -->
+        <div id="news" class="page-content p-8">
+            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Market News & Insights</h2>
+            <div class="max-w-3xl mx-auto mb-8">
+                <div class="relative">
+                    <input type="search" id="newsSearchInput" class="w-full pl-10 pr-4 py-2 rounded-md" placeholder="Search news by company name...">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+            </div>
+            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- News articles will be injected here by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Stock Modal -->
+    <div id="stockModal" class="modal"><div class="modal-content"><h3 id="modalTitle" class="text-2xl font-bold mb-4 primary-text">Add New Stock</h3><form id="stockForm"><input type="hidden" id="stockId"><div class="space-y-4"><div><label for="stockName" class="block text-sm font-medium text-gray-400">Stock Name</label><input type="text" id="stockName" class="mt-1 block w-full rounded-md" required placeholder="e.g., Tata Steel"></div><div><label for="stockQuantity" class="block text-sm font-medium text-gray-400">Quantity</label><input type="number" id="stockQuantity" class="mt-1 block w-full rounded-md" required placeholder="e.g., 100"></div><div><label for="stockBuyPrice" class="block text-sm font-medium text-gray-400">Buy Price (₹)</label><input type="number" id="stockBuyPrice" step="0.01" class="mt-1 block w-full rounded-md" required placeholder="e.g., 150"></div></div><div class="mt-6 flex gap-4"><button type="submit" id="modalSubmitBtn" class="w-full btn-primary py-2 px-4 rounded-md">Add to Portfolio</button><button type="button" id="closeModalBtn" class="w-full bg-gray-800 text-gray-200 py-2 px-4 rounded-md hover:bg-gray-700">Cancel</button></div></form></div></div>
+
+    <!-- Sell Stock Modal -->
+    <div id="sellStockModal" class="modal"><div class="modal-content"><h3 class="text-2xl font-bold mb-4 primary-text">Sell Stock</h3><form id="sellStockForm"><input type="hidden" id="sellStockId"><div class="space-y-4"><div><p>Selling: <span id="sellStockName" class="font-bold"></span></p><p>Quantity: <span id="sellStockQuantity"></span></p></div><div><label for="sellPrice" class="block text-sm font-medium text-gray-400">Sell Price (₹)</label><input type="number" id="sellPrice" class="mt-1 block w-full rounded-md" required placeholder="e.g., 165"></div></div><div class="mt-6 flex gap-4"><button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">Confirm Sell</button><button type="button" id="closeSellModalBtn" class="w-full bg-gray-800 text-gray-200 py-2 px-4 rounded-md hover:bg-gray-700">Cancel</button></div></form></div></div>
+    
+    <!-- AI Analysis Modal -->
+    <div id="aiAnalysisModal" class="modal"><div class="modal-content"><h3 class="text-2xl font-bold mb-4 primary-text">✨ AI Portfolio Analysis</h3><div id="aiAnalysisContent" class="text-gray-300 space-y-4"></div><div class="mt-6"><button type="button" id="closeAiModalBtn" class="w-full bg-gray-800 text-gray-200 py-2 px-4 rounded-md hover:bg-gray-700">Close</button></div></div></div>
+
+    <footer class="bg-black border-t border-gray-800 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="https://www.instagram.com/_.pavanreddie._?igsh=MTdzbTFlemsxd2o0OQ==" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-daa520 transition-colors">
+                    <span class="sr-only">Instagram</span>
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C8.74 2 8.279.014 6.724.087 5.168.16 4.08.442 3.232.96c-.848.518-1.48 1.15-1.998 1.998C.714 3.808.432 4.896.36 6.452.286 8.006.272 8.468.272 11.728s.014 3.722.088 5.276c.072 1.556.354 2.644.872 3.492.518.848 1.15 1.48 1.998 1.998.848.518 1.936.79 3.492.862 1.554.074 2.016.088 5.276.088s3.722-.014 5.276-.088c1.556-.072 2.644-.344 3.492-.862.848-.518 1.48-1.15 1.998-1.998.518-.848.79-1.936.862-3.492.074-1.554.088-2.016.088-5.276s-.014-3.722-.088-5.276c-.072-1.556-.354-2.644-.862-3.492-.518-.848-1.15-1.48-1.998-1.998C19.192.442 18.104.16 16.548.088 15.002.014 14.53 0 11.27 0H12zm0 1.802c3.204 0 3.58.012 4.85.07 1.27.058 2.148.33 2.87.832.722.502 1.258 1.038 1.76 1.76.502.722.774 1.6.832 2.87.058 1.27.07 1.646.07 4.85s-.012 3.58-.07 4.85c-.058 1.27-.33 2.148-.832 2.87-.502.722-1.038 1.258-1.76 1.76-.722.502-1.6.774-2.87.832-1.27.058-1.646.07-4.85.07s-3.58-.012-4.85-.07c-1.27-.058-2.148-.33-2.87-.832-.722-.502-1.258-1.038-1.76-1.76-.502-.722-.774-1.6-.832-2.87-.058-1.27-.07-1.646-.07-4.85s.012-3.58.07-4.85c.058-1.27.33-2.148.832-2.87.502-.722 1.038-1.258 1.76-1.76.722-.502 1.6-.774 2.87-.832C8.42 1.814 8.796 1.802 12 1.802zM12 7.188a4.812 4.812 0 100 9.624 4.812 4.812 0 000-9.624zM12 15a3 3 0 110-6 3 3 0 010 6zm4.812-6.812a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z" clip-rule="evenodd" /></svg>
+                </a>
+                <a href="mailto:Pavanreddy000031@gmail.com" class="text-gray-400 hover:text-daa520 transition-colors">
+                    <span class="sr-only">Mail</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </a>
+                <a href="https://www.linkedin.com/in/pavan-reddy-47a606347?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-daa520 transition-colors">
+                    <span class="sr-only">LinkedIn</span>
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+            </div>
+            <p>&copy; 2025 Trade Metrics. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Custom JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+/* Custom styles for Black & Gold Theme */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #000000; /* Black background */
+    background-image: radial-gradient(circle at top, #1a1a1a 0%, #000000 100%);
+    color: #e0e0e0; /* Light gray text */
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 50;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background-color: #1a1a1a;
+    margin: auto;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    border: 1px solid #daa520;
+    width: 90%;
+    max-width: 500px;
+}
+.page-content {
+    display: none;
+}
+.nav-link.active {
+    color: #daa520; /* Gold */
+    background-color: rgba(218, 165, 32, 0.1);
+}
+.primary-text {
+    color: #daa520; /* Gold */
+    text-shadow: 0 0 8px rgba(218, 165, 32, 0.5);
+}
+.btn-primary {
+    background-color: #daa520;
+    color: #000000;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.2s;
+}
+.btn-primary:hover {
+    background-color: #c7941e;
+    transform: scale(1.05);
+}
+.btn-ai {
+    background-color: transparent;
+    color: #daa520;
+    border: 2px solid #daa520;
+}
+.btn-ai:hover {
+    background-color: rgba(218, 165, 32, 0.1);
+}
+input[type="number"], input[type="text"], input[type="search"] {
+    background-color: #000000;
+    border: 1px solid #4a4a4a;
+    color: #e0e0e0;
+}
+input[type="number"]:focus, input[type="text"]:focus, input[type="search"]:focus {
+    border-color: #daa520;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.3);
+}
+.loader {
+    border: 4px solid #4a4a4a;
+    border-top: 4px solid #daa520;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+hr.divider {
+    border-color: #4a4a4a;
+}
+#drop-area {
+    border: 2px dashed #4a4a4a;
+    transition: border-color 0.3s, background-color 0.3s;
+}
+#drop-area.highlight {
+    border-color: #daa520;
+    background-color: rgba(218, 165, 32, 0.1);
+}
+
+/* Animation Keyframes */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 1s ease-in-out forwards;
+}
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-in-out forwards;
+}
+.pulse-animate {
+    animation: pulse 2s infinite;
+}
+
+/* Staggered animation delays */
+.feature-card {
+    opacity: 0;
+}
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
