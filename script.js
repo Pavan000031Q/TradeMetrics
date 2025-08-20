@@ -50,8 +50,20 @@ document.addEventListener('DOMContentLoaded', function() {
     let watchlist = [];
     let editingStockId = null;
     let portfolioChart = null;
-    let chartImageBase64 = null;
+    let chartImageBase64 = null; 
+    
+    // --- API Configuration (Using Your Personal Proxy) ---
+    // ⚠️ IMPORTANT: Paste your Cloudflare Worker URL here
+    const PROXY_URL = 'https://trade-metrics-proxy.pacef58714.workers.dev/'; 
 
+    const MARKET_SYMBOLS = {
+        nifty: { name: 'Nifty 50', symbol: '^NSEI' },
+        sensex: { name: 'Sensex', symbol: '^BSESN' },
+        banknifty: { name: 'Bank Nifty', symbol: '^NSEBANK' },
+        sp500: { name: 'S&P 500', symbol: '^GSPC' },
+        nasdaq: { name: 'Nasdaq', symbol: '^IXIC' }
+    };
+    
     // --- Local Storage Functions ---
     function savePortfolio() { localStorage.setItem('tradeMetricsPortfolio', JSON.stringify(portfolio)); }
     function loadPortfolio() {
@@ -83,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (pageId === 'news') {
                 renderNews();
             } else if (pageId === 'home') {
-                renderMarketData();
+                fetchMarketData(); 
             }
         }
         document.querySelectorAll('a[data-page]').forEach(link => {
@@ -92,7 +104,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 link.classList.add('active');
             }
         });
-        if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+        if (mobileMenu && !mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+    }
+    
+    if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
     }
     
     document.querySelectorAll('a[data-page]').forEach(link => {
@@ -101,8 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showPage(link.getAttribute('data-page'));
         });
     });
-
-    mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
 
     // --- Calculator Logic ---
     if(calculatePlBtn) {
@@ -516,23 +530,50 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             aiSwingAnalysisResult.classList.remove('hidden');
-            aiSwingAnalysisResult.innerHTML = '<div class="loader"></div><p class="text-center">Analyzing pattern...</p>';
+            aiSwingAnalysisResult.innerHTML = '<div class="loader"></div><p class="text-center">Sending data for analysis...</p>';
             
-            setTimeout(() => {
-                const pdfFileName = `${stockName}_${exchange}_Analysis.pdf`;
-                const pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'; // Sample PDF
+            const dataToSend = {
+                stockName: stockName,
+                exchange: exchange,
+                imageBase64: chartImageBase64
+            };
+
+            const webhookUrl = 'http://localhost:5678/webhook-test/swing-trade-analysis';
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dataToSend),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Webhook response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
                 aiSwingAnalysisResult.innerHTML = `
                     <div class="text-center">
-                        <h4 class="text-lg font-semibold text-white">Analysis Complete</h4>
-                        <p class="text-gray-400 mt-2">Report generated: <span class="font-semibold text-daa520">${pdfFileName}</span></p>
-                        <a href="${pdfUrl}" download="${pdfFileName}" class="mt-4 inline-block btn-primary py-2 px-4 rounded-md">Download Report</a>
-                    </div>
-                    <div class="mt-6 border-t border-gray-800 pt-6">
-                         <h4 class="text-lg font-semibold text-white text-center mb-4">Report Preview</h4>
-                        <iframe src="${pdfUrl}" class="w-full h-96 rounded-lg"></iframe>
+                        <h4 class="text-lg font-semibold text-green-400">✅ Workflow Triggered Successfully</h4>
+                        <p class="text-gray-400 mt-2">The analysis request was sent to your n8n workflow.</p>
+                        <p class="text-xs text-gray-500 mt-4">Response from webhook: ${JSON.stringify(data)}</p>
                     </div>
                 `;
-            }, 2000);
+            })
+            .catch(error => {
+                console.error('Error sending data to webhook:', error);
+                aiSwingAnalysisResult.innerHTML = `
+                    <div class="text-center">
+                        <h4 class="text-lg font-semibold text-red-400">❌ Error Triggering Workflow</h4>
+                        <p class="text-gray-400 mt-2">Could not connect to the n8n webhook.</p>
+                        <p class="text-xs text-gray-500 mt-2">Please ensure your local n8n instance is running and the webhook URL is correct.</p>
+                        <p class="text-xs text-gray-600 mt-4">Details: ${error.message}</p>
+                    </div>
+                `;
+            });
         });
     }
 
@@ -609,40 +650,112 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Market Data Ticker ---
-    function renderMarketData() {
-        const marketData = [
-            { name: 'Nifty 50', open: 23450.75, current: 23510.40 },
-            { name: 'Sensex', open: 77100.20, current: 76990.80 },
-            { name: 'BankNifty', open: 51200.50, current: 51450.10 },
-            { name: 'S&P 500', open: 5400.60, current: 5395.30 }
-        ];
+    // --- Market Data Ticker (REBUILT FOR Your Personal Proxy) ---
+    async function fetchProxyQuote(marketSymbol) {
+        const response = await fetch(`${PROXY_URL}?symbol=${marketSymbol.symbol}`);
+        if (!response.ok) {
+            throw new Error(`Proxy request failed with status: ${response.status}`);
+        }
+        const data = await response.json();
+        const meta = data?.chart?.result?.[0]?.meta;
+        if (!meta) {
+            throw new Error(`Invalid data structure for symbol: ${marketSymbol.symbol}`);
+        }
+        return {
+            name: marketSymbol.name,
+            symbol: marketSymbol.symbol,
+            current: meta.regularMarketPrice || 0,
+            open: meta.chartPreviousClose || meta.regularMarketPrice || 0,
+            change: meta.regularMarketPrice - meta.previousClose || 0,
+            changePercent: ((meta.regularMarketPrice - meta.previousClose) / meta.previousClose) * 100 || 0
+        };
+    }
 
+    async function fetchMarketData() {
         const tickersContainer = document.getElementById('market-tickers');
         if (!tickersContainer) return;
-        tickersContainer.innerHTML = '';
+
+        if (tickersContainer.innerHTML.trim() === '') {
+            tickersContainer.innerHTML = '<div class="col-span-full text-center text-gray-500">Fetching live market data...</div>';
+        }
+
+        if (!PROXY_URL || PROXY_URL === 'https://YOUR_WORKER_URL') {
+            renderMarketDataError('Please configure your Cloudflare Worker URL in script.js');
+            return;
+        }
+
+        try {
+            const promises = Object.values(MARKET_SYMBOLS).map(symbolInfo => fetchProxyQuote(symbolInfo));
+            const marketData = await Promise.all(promises);
+            renderMarketData(marketData);
+        } catch (error) {
+            console.error('Proxy fetch failed:', error.message);
+            renderMarketDataError('Could not fetch live market data at this time.');
+        }
+    }
+
+    function renderMarketData(marketData) {
+        const tickersContainer = document.getElementById('market-tickers');
+        if (!tickersContainer) return;
+
+        if (tickersContainer.querySelector('div.col-span-full')) {
+            tickersContainer.innerHTML = '';
+        }
 
         marketData.forEach(market => {
-            const change = market.current - market.open;
-            const changePercent = (change / market.open) * 100;
-            const colorClass = change >= 0 ? 'text-green-400' : 'text-red-400';
-            const sign = change >= 0 ? '+' : '';
+            const tickerId = `ticker-${market.symbol.replace('^', '')}`;
+            const existingTickerEl = document.getElementById(tickerId);
+            
+            const colorClass = market.current >= market.open ? 'text-green-400' : 'text-red-400';
+            const flashClass = market.current >= market.open ? 'flash-green' : 'flash-red';
+            const sign = market.change >= 0 ? '+' : '';
 
-            const tickerEl = document.createElement('div');
-            tickerEl.className = 'bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg p-3';
-            tickerEl.innerHTML = `
-                <p class="font-bold text-sm text-white">${market.name}</p>
-                <p class="font-semibold text-lg ${colorClass}">${market.current.toFixed(2)}</p>
-                <p class="text-xs ${colorClass}">${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)</p>
-            `;
-            tickersContainer.appendChild(tickerEl);
+            if (existingTickerEl) {
+                // UPDATE
+                const priceEl = document.getElementById(`${tickerId}-price`);
+                const changeEl = document.getElementById(`${tickerId}-change`);
+
+                if (priceEl.textContent !== market.current.toFixed(2)) {
+                    priceEl.textContent = market.current.toFixed(2);
+                    changeEl.textContent = `${sign}${market.change.toFixed(2)} (${sign}${market.changePercent.toFixed(2)}%)`;
+
+                    priceEl.className = `font-semibold text-lg ${colorClass}`;
+                    changeEl.className = `text-xs ${colorClass}`;
+
+                    existingTickerEl.classList.add(flashClass);
+                    setTimeout(() => {
+                        existingTickerEl.classList.remove(flashClass);
+                    }, 700);
+                }
+            } else {
+                // CREATE
+                const tickerEl = document.createElement('div');
+                tickerEl.id = tickerId;
+                tickerEl.className = 'bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg p-3';
+                
+                tickerEl.innerHTML = `
+                    <p class="font-bold text-sm text-white">${market.name}</p>
+                    <p id="${tickerId}-price" class="font-semibold text-lg ${colorClass}">${market.current.toFixed(2)}</p>
+                    <p id="${tickerId}-change" class="text-xs ${colorClass}">${sign}${market.change.toFixed(2)} (${sign}${market.changePercent.toFixed(2)}%)</p>
+                `;
+                tickersContainer.appendChild(tickerEl);
+            }
         });
+    }
+    
+    function renderMarketDataError(message) {
+        const tickersContainer = document.getElementById('market-tickers');
+        if (!tickersContainer) return;
+        tickersContainer.innerHTML = `<div class="col-span-full text-center text-red-400 p-4">${message}</div>`;
     }
 
 
-    // Initial Load
+    // --- Initial Load ---
     loadPortfolio();
     loadTradeHistory();
     loadWatchlist();
     showPage('home');
+
+    // Fetch market data every 3 minute
+    setInterval(fetchMarketData, 180000);
 });

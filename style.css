@@ -100,6 +100,11 @@ hr.divider {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
 }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 
 /* Animation Classes */
 .fade-in {
@@ -119,3 +124,21 @@ hr.divider {
 .delay-1 { animation-delay: 0.2s; }
 .delay-2 { animation-delay: 0.4s; }
 .delay-3 { animation-delay: 0.6s; }
+
+/* --- NEW: Animation for price updates --- */
+.flash-green {
+    animation: flash-green-animation 0.7s ease-out;
+}
+.flash-red {
+    animation: flash-red-animation 0.7s ease-out;
+}
+
+@keyframes flash-green-animation {
+    0% { background-color: rgba(0, 255, 0, 0.3); }
+    100% { background-color: transparent; }
+}
+
+@keyframes flash-red-animation {
+    0% { background-color: rgba(255, 0, 0, 0.3); }
+    100% { background-color: transparent; }
+}

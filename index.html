@@ -4,20 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trade Metrics Pro</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js for pie chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Custom Stylesheet -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-gray-300 flex flex-col min-h-screen">
 
-    <!-- Navigation Bar -->
     <nav class="bg-black bg-opacity-80 backdrop-blur-md shadow-lg sticky top-0 z-40 border-b border-gray-800">
         <div class="px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -60,7 +56,6 @@
     </nav>
 
     <main class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex-grow w-full">
-        <!-- Home Page -->
         <div id="home" class="page-content">
             <header class="text-white text-center py-16 md:py-24">
                 <div class="flex justify-center fade-in-up">
@@ -69,10 +64,8 @@
                 <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mt-4 fade-in-up delay-1">The <span class="primary-text">Gold Standard</span> in Trading Analytics</h1>
                 <p class="mt-4 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto fade-in-up delay-2">Unlock premium tools for intelligent analysis and portfolio management.</p>
                 
-                <!-- Market Tickers -->
-                <div id="market-tickers" class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto fade-in-up delay-3">
-                    <!-- Tickers will be injected here by JavaScript -->
-                </div>
+                <div id="market-tickers" class="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-7xl mx-auto fade-in-up delay-3">
+                    </div>
 
                 <a href="#" data-page="analyzer" class="nav-link mt-8 inline-block btn-primary py-3 px-6 rounded-md font-bold text-lg fade-in-up delay-3 pulse-animate">Start Analyzing</a>
             </header>
@@ -101,7 +94,6 @@
             </section>
         </div>
 
-        <!-- Intraday, Swing, Investment Pages -->
         <div id="intraday" class="page-content p-8">
             <h2 class="text-3xl font-bold text-center mb-8 primary-text">Intraday Trading Insights</h2>
             <div class="text-center text-gray-400 mt-16">
@@ -172,11 +164,9 @@
             </div>
         </div>
 
-        <!-- Trade Analyzer Page -->
         <div id="analyzer" class="page-content">
             <h2 class="text-3xl font-bold text-center mb-12 primary-text">Trade Analyzer</h2>
             <div class="space-y-12">
-                <!-- Profit/Loss Calculator -->
                 <div class="max-w-2xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
                     <h3 class="text-2xl font-bold text-center mb-6 text-white">Profit / Loss Calculator</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -195,7 +185,6 @@
                     </div>
                 </div>
 
-                <!-- Target & Stop-Loss Calculator -->
                 <div class="max-w-2xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
                     <h3 class="text-2xl font-bold text-center mb-6 text-white">Position Sizing & Risk Calculator</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,7 +206,6 @@
             </div>
         </div>
 
-        <!-- Portfolio Management Page -->
         <div id="portfolio" class="page-content">
             <h2 class="text-3xl font-bold text-center mb-8 primary-text">Portfolio Management</h2>
             <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -250,7 +238,6 @@
             </div>
         </div>
 
-        <!-- Watchlist Page -->
         <div id="watchlist" class="page-content">
             <h2 class="text-3xl font-bold text-center mb-8 primary-text">Watchlist</h2>
             <div class="max-w-2xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
@@ -263,7 +250,6 @@
             </div>
         </div>
 
-        <!-- News Page -->
         <div id="news" class="page-content p-8">
             <h2 class="text-3xl font-bold text-center mb-8 primary-text">Market News & Insights</h2>
             <div class="max-w-3xl mx-auto mb-8">
@@ -275,18 +261,14 @@
                 </div>
             </div>
             <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- News articles will be injected here by JavaScript -->
-            </div>
+                </div>
         </div>
     </main>
 
-    <!-- Add/Edit Stock Modal -->
     <div id="stockModal" class="modal"><div class="modal-content"><h3 id="modalTitle" class="text-2xl font-bold mb-4 primary-text">Add New Stock</h3><form id="stockForm"><input type="hidden" id="stockId"><div class="space-y-4"><div><label for="stockName" class="block text-sm font-medium text-gray-400">Stock Name</label><input type="text" id="stockName" class="mt-1 block w-full rounded-md" required placeholder="e.g., Tata Steel"></div><div><label for="stockQuantity" class="block text-sm font-medium text-gray-400">Quantity</label><input type="number" id="stockQuantity" class="mt-1 block w-full rounded-md" required placeholder="e.g., 100"></div><div><label for="stockBuyPrice" class="block text-sm font-medium text-gray-400">Buy Price (₹)</label><input type="number" id="stockBuyPrice" step="0.01" class="mt-1 block w-full rounded-md" required placeholder="e.g., 150"></div></div><div class="mt-6 flex gap-4"><button type="submit" id="modalSubmitBtn" class="w-full btn-primary py-2 px-4 rounded-md">Add to Portfolio</button><button type="button" id="closeModalBtn" class="w-full bg-gray-800 text-gray-200 py-2 px-4 rounded-md hover:bg-gray-700">Cancel</button></div></form></div></div>
 
-    <!-- Sell Stock Modal -->
     <div id="sellStockModal" class="modal"><div class="modal-content"><h3 class="text-2xl font-bold mb-4 primary-text">Sell Stock</h3><form id="sellStockForm"><input type="hidden" id="sellStockId"><div class="space-y-4"><div><p>Selling: <span id="sellStockName" class="font-bold"></span></p><p>Quantity: <span id="sellStockQuantity"></span></p></div><div><label for="sellPrice" class="block text-sm font-medium text-gray-400">Sell Price (₹)</label><input type="number" id="sellPrice" class="mt-1 block w-full rounded-md" required placeholder="e.g., 165"></div></div><div class="mt-6 flex gap-4"><button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">Confirm Sell</button><button type="button" id="closeSellModalBtn" class="w-full bg-gray-800 text-gray-200 py-2 px-4 rounded-md hover:bg-gray-700">Cancel</button></div></form></div></div>
     
-    <!-- AI Analysis Modal -->
     <div id="aiAnalysisModal" class="modal"><div class="modal-content"><h3 class="text-2xl font-bold mb-4 primary-text">✨ AI Portfolio Analysis</h3><div id="aiAnalysisContent" class="text-gray-300 space-y-4"></div><div class="mt-6"><button type="button" id="closeAiModalBtn" class="w-full bg-gray-800 text-gray-200 py-2 px-4 rounded-md hover:bg-gray-700">Close</button></div></div></div>
 
     <footer class="bg-black border-t border-gray-800 mt-auto">
@@ -294,7 +276,7 @@
             <div class="flex justify-center space-x-6 mb-4">
                 <a href="https://www.instagram.com/_.pavanreddie._?igsh=MTdzbTFlemsxd2o0OQ==" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-daa520 transition-colors">
                     <span class="sr-only">Instagram</span>
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C8.74 2 8.279.014 6.724.087 5.168.16 4.08.442 3.232.96c-.848.518-1.48 1.15-1.998 1.998C.714 3.808.432 4.896.36 6.452.286 8.006.272 8.468.272 11.728s.014 3.722.088 5.276c.072 1.556.354 2.644.872 3.492.518.848 1.15 1.48 1.998 1.998.848.518 1.936.79 3.492.862 1.554.074 2.016.088 5.276.088s3.722-.014 5.276-.088c1.556-.072 2.644-.344 3.492-.862.848-.518 1.48-1.15 1.998-1.998.518-.848.79-1.936.862-3.492.074-1.554.088-2.016.088-5.276s-.014-3.722-.088-5.276c-.072-1.556-.354-2.644-.862-3.492-.518-.848-1.15-1.48-1.998-1.998C19.192.442 18.104.16 16.548.088 15.002.014 14.53 0 11.27 0H12zm0 1.802c3.204 0 3.58.012 4.85.07 1.27.058 2.148.33 2.87.832.722.502 1.258 1.038 1.76 1.76.502.722.774 1.6.832 2.87.058 1.27.07 1.646.07 4.85s-.012 3.58-.07 4.85c-.058 1.27-.33 2.148-.832 2.87-.502.722-1.038 1.258-1.76 1.76-.722.502-1.6.774-2.87.832-1.27.058-1.646.07-4.85.07s-3.58-.012-4.85-.07c-1.27-.058-2.148-.33-2.87-.832-.722-.502-1.258-1.038-1.76-1.76-.502-.722-.774-1.6-.832-2.87-.058-1.27-.07-1.646-.07-4.85s.012-3.58.07-4.85c.058-1.27.33-2.148.832-2.87.502-.722 1.038-1.258 1.76-1.76.722-.502 1.6-.774 2.87-.832C8.42 1.814 8.796 1.802 12 1.802zM12 7.188a4.812 4.812 0 100 9.624 4.812 4.812 0 000-9.624zM12 15a3 3 0 110-6 3 3 0 010 6zm4.812-6.812a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z" clip-rule="evenodd" /></svg>
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C8.74 2 8.279.014 6.724.087 5.168.16 4.08.442 3.232.96c-.848.518-1.48 1.15-1.998 1.998C.714 3.808.432 4.896.36 6.452.286 8.006.272 8.468.272 11.728s.014 3.722.088 5.276c.072 1.556.354 2.644.872 3.492.518.848 1.15 1.48 1.998 1.998.848.518 1.936.79 3.492.862 1.554.074 2.016.088 5.276.088s3.722-.014 5.276-.088c1.556-.072 2.644-.344 3.492-.862.848-.518 1.48-1.15 1.998-1.998.518-.848.79-1.936.862-3.492.074-1.554.088-2.016.088-5.276s-.014-3.722-.088-5.276c-.072-1.556-.354-2.644-.862-3.492-.518-.848-1.15-1.48-1.998-1.998C19.192.442 18.104.16 16.548.088 15.002.014 14.53 0 11.27 0H12zm0 1.802c3.204 0 3.58.012 4.85.07 1.27.058 2.148.33 2.87.832.722.502 1.258 1.038 1.76 1.76.502.722.774 1.6.832 2.87.058 1.27.07 1.646.07 4.85s-.012 3.58-.07 4.85c-.058 1.27-.33 2.148-.832 2.87-.502.722-1.038 1.258-1.76 1.76-.722.502-1.6.774-2.87.832-1.27.058-1.646.07-4.85.07s-3.58-.012-4.85-.07c-1.27-.058-2.148-.33-2.87-.832-.722-.502-1.258-1.038-1.76-1.76-.502-.722-.774-1.6-.832-2.87-.058-1.27-.07-1.646-.07-4.85s.012-3.58.07-4.85c.058-1.27.33-2.148.832-2.87.502.722 1.038 1.258 1.76-1.76.722-.502 1.6-.774 2.87-.832C8.42 1.814 8.796 1.802 12 1.802zM12 7.188a4.812 4.812 0 100 9.624 4.812 4.812 0 000-9.624zM12 15a3 3 0 110-6 3 3 0 010 6zm4.812-6.812a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z" clip-rule="evenodd" /></svg>
                 </a>
                 <a href="mailto:Pavanreddy000031@gmail.com" class="text-gray-400 hover:text-daa520 transition-colors">
                     <span class="sr-only">Mail</span>
@@ -309,7 +291,6 @@
         </div>
     </footer>
 
-    <!-- Custom JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
