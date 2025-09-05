@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const pageContents = document.querySelectorAll('.page-content');
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileMenuButton = document.getElementById('mobile-menu-button');
-    
+
     // P/L Calculator Elements
     const calculatePlBtn = document.getElementById('calculatePl');
     const plResultEl = document.getElementById('plResult');
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const portfolioList = document.getElementById('portfolioList');
     const portfolioInvestmentEl = document.getElementById('portfolioInvestment');
     const checkHealthBtn = document.getElementById('checkHealthBtn');
-    
+
     // Sell Modal Elements
     const sellStockModal = document.getElementById('sellStockModal');
     const sellStockForm = document.getElementById('sellStockForm');
@@ -44,17 +44,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // News Elements
     const newsContainer = document.getElementById('news-container');
     const newsSearchInput = document.getElementById('newsSearchInput');
-    
+
     let portfolio = [];
     let tradeHistory = [];
     let watchlist = [];
     let editingStockId = null;
     let portfolioChart = null;
-    let chartImageBase64 = null; 
-    
+    let chartImageBase64 = null;
+
     // --- API Configuration (Using Your Personal Proxy) ---
     // ⚠️ IMPORTANT: Paste your Cloudflare Worker URL here
-    const PROXY_URL = 'https://trade-metrics-proxy.pacef58714.workers.dev/'; 
+    const PROXY_URL = 'https://trade-metrics-proxy.pacef58714.workers.dev/';
 
     const MARKET_SYMBOLS = {
         nifty: { name: 'Nifty 50', symbol: '^NSEI' },
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sp500: { name: 'S&P 500', symbol: '^GSPC' },
         nasdaq: { name: 'Nasdaq', symbol: '^IXIC' }
     };
-    
+
     // --- Local Storage Functions ---
     function savePortfolio() { localStorage.setItem('tradeMetricsPortfolio', JSON.stringify(portfolio)); }
     function loadPortfolio() {
@@ -85,8 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function showPage(pageId) {
         pageContents.forEach(page => { page.style.display = 'none'; });
         const activePage = document.getElementById(pageId);
-        if (activePage) { 
-            activePage.style.display = 'block'; 
+        if (activePage) {
+            activePage.style.display = 'block';
             if (pageId === 'portfolio') {
                 renderPortfolio();
                 renderTradeHistory();
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (pageId === 'news') {
                 renderNews();
             } else if (pageId === 'home') {
-                fetchMarketData(); 
+                fetchMarketData();
             }
         }
         document.querySelectorAll('a[data-page]').forEach(link => {
@@ -106,11 +106,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (mobileMenu && !mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
     }
-    
+
     if (mobileMenuButton) {
         mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
     }
-    
+
     document.querySelectorAll('a[data-page]').forEach(link => {
          link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
             stockModal.style.display = 'flex';
         });
     }
-    
+
     if(closeModalBtn) {
         closeModalBtn.addEventListener('click', () => { stockModal.style.display = 'none'; });
     }
@@ -199,14 +199,14 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 portfolio.push({ ...stockData, id: Date.now() });
             }
-            
+
             renderPortfolio();
             savePortfolio();
             stockForm.reset();
             stockModal.style.display = 'none';
         });
     }
-    
+
     function handleEditStock(e) {
         const id = Number(e.currentTarget.dataset.id);
         const stock = portfolio.find(s => s.id === id);
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sellStockModal.style.display = 'flex';
         }
     }
-    
+
     if(closeSellModalBtn) {
         closeSellModalBtn.addEventListener('click', () => { sellStockModal.style.display = 'none'; });
     }
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const sellPrice = parseFloat(document.getElementById('sellPrice').value);
             const stockId = Number(sellStockIdInput.value);
-            
+
             if(isNaN(sellPrice) || sellPrice <= 0) {
                 alert('Please enter a valid sell price.');
                 return;
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveTradeHistory();
                 renderPortfolio();
                 renderTradeHistory();
-                
+
                 sellStockForm.reset();
                 sellStockModal.style.display = 'none';
             }
@@ -309,15 +309,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 portfolioList.appendChild(stockEl);
             });
         }
-        
+
         document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEditStock));
         document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDeleteStock));
         document.querySelectorAll('.sell-btn').forEach(btn => btn.addEventListener('click', handleOpenSellModal));
-        
+
         calculatePortfolioHealth();
         renderPortfolioChart();
     }
-    
+
     function renderTradeHistory() {
         if (!tradeHistoryContainer) return;
         tradeHistoryContainer.innerHTML = '';
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!ctx) return;
 
         if (portfolioChart) { portfolioChart.destroy(); }
-        
+
         if(portfolio.length === 0) {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             ctx.textAlign = 'center';
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-    
+
     // --- Swing Trade Image Analysis ---
     const dropArea = document.getElementById('drop-area');
     const fileInput = document.getElementById('file-input');
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (dropArea) {
         dropArea.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-        
+
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
         });
@@ -528,10 +528,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please provide a stock name, exchange, and upload a chart image.');
                 return;
             }
-            
+
             aiSwingAnalysisResult.classList.remove('hidden');
-            aiSwingAnalysisResult.innerHTML = '<div class="loader"></div><p class="text-center">Sending data for analysis...</p>';
-            
+            aiSwingAnalysisResult.innerHTML = `
+                <div class="loader"></div>
+                <p class="text-center text-yellow-400">
+                    🚀 Sending data for AI analysis...
+                </p>
+                <p class="text-center text-gray-400 mt-2">
+                    This process may take 3-4 minutes to complete.
+                </p>
+                <p class="text-center text-gray-400 mt-1">
+                    Please do not close this window.
+                </p>
+            `;
+
             const dataToSend = {
                 stockName: stockName,
                 exchange: exchange,
@@ -555,13 +566,17 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 console.log('Success:', data);
-                aiSwingAnalysisResult.innerHTML = `
-                    <div class="text-center">
-                        <h4 class="text-lg font-semibold text-green-400">✅ Workflow Triggered Successfully</h4>
-                        <p class="text-gray-400 mt-2">The analysis request was sent to your n8n workflow.</p>
-                        <p class="text-xs text-gray-500 mt-4">Response from webhook: ${JSON.stringify(data)}</p>
-                    </div>
-                `;
+                if (data && data.signedUrl) {
+                    displayPdf(data.signedUrl);
+                } else {
+                    aiSwingAnalysisResult.innerHTML = `
+                        <div class="text-center">
+                            <h4 class="text-lg font-semibold text-yellow-400">⚠️ Analysis Complete, No PDF URL Found</h4>
+                            <p class="text-gray-400 mt-2">The n8n workflow finished, but did not return a PDF link.</p>
+                            <p class="text-xs text-gray-500 mt-4">Response from webhook: ${JSON.stringify(data)}</p>
+                        </div>
+                    `;
+                }
             })
             .catch(error => {
                 console.error('Error sending data to webhook:', error);
@@ -577,6 +592,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function displayPdf(pdfUrl) {
+        aiSwingAnalysisResult.innerHTML = `
+            <div class="space-y-4">
+                <div class="text-center">
+                    <h4 class="text-lg font-semibold text-green-400">✅ Analysis Complete!</h4>
+                    <p class="text-gray-400">Your PDF report is ready.</p>
+                </div>
+                <div class="flex justify-center">
+                    <a href="${pdfUrl}" download class="btn-primary py-2 px-4 rounded-md">
+                        Download Report PDF
+                    </a>
+                </div>
+                <hr class="divider">
+                <div class="text-center text-gray-400">
+                    <p>Report Preview</p>
+                    <p class="text-xs text-gray-500">Note: Display may not work on all browsers.</p>
+                </div>
+                <div class="w-full h-[600px] bg-gray-900 rounded-lg overflow-hidden">
+                    <iframe src="${pdfUrl}" class="w-full h-full border-0"></iframe>
+                </div>
+            </div>
+        `;
+    }
 
     // --- AI Health Check Logic ---
     if(checkHealthBtn) {
@@ -606,7 +644,7 @@ document.addEventListener('DOMContentLoaded', function() {
             aiAnalysisModal.style.display = 'none';
         }
     });
-    
+
     // --- News Logic ---
     const staticNews = [
         { category: 'Market Analysis', headline: 'Nifty 50 Faces Resistance at 23,500; Analysts Advise Caution', summary: 'The benchmark Nifty 50 index is showing signs of consolidation after a strong rally. Key technical indicators suggest a possible pullback before the next leg up.', source: 'Economic Times', date: 'Aug 15, 2025', company: 'Nifty' },
@@ -705,7 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         marketData.forEach(market => {
             const tickerId = `ticker-${market.symbol.replace('^', '')}`;
             const existingTickerEl = document.getElementById(tickerId);
-            
+
             const colorClass = market.current >= market.open ? 'text-green-400' : 'text-red-400';
             const flashClass = market.current >= market.open ? 'flash-green' : 'flash-red';
             const sign = market.change >= 0 ? '+' : '';
@@ -732,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tickerEl = document.createElement('div');
                 tickerEl.id = tickerId;
                 tickerEl.className = 'bg-gray-900 bg-opacity-50 border border-gray-800 rounded-lg p-3';
-                
+
                 tickerEl.innerHTML = `
                     <p class="font-bold text-sm text-white">${market.name}</p>
                     <p id="${tickerId}-price" class="font-semibold text-lg ${colorClass}">${market.current.toFixed(2)}</p>
@@ -742,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     function renderMarketDataError(message) {
         const tickersContainer = document.getElementById('market-tickers');
         if (!tickersContainer) return;
