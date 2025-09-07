@@ -19,6 +19,7 @@
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
                     <a href="#" data-page="home" class="flex items-center gap-2">
+                        <!-- Removed logo image as it's not present -->
                         <span class="font-bold text-xl primary-text">Trade Metrics</span>
                     </a>
                 </div>
@@ -59,13 +60,13 @@
         <div id="home" class="page-content">
             <header class="text-white text-center py-16 md:py-24">
                 <div class="flex justify-center fade-in-up">
-                     <img src="Assets/logo.png" alt="Trade Metrics Logo" class="h-48 md:h-64">
+                    <img src="Assets/logo.png" alt="Trade Metrics Logo" class="h-48 md:h-64">
                 </div>
                 <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mt-4 fade-in-up delay-1">The <span class="primary-text">Gold Standard</span> in Trading Analytics</h1>
                 <p class="mt-4 text-lg md:text-xl text-gray-400 max-w-2xl mx-auto fade-in-up delay-2">Unlock premium tools for intelligent analysis and portfolio management.</p>
                 
                 <div id="market-tickers" class="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 max-w-7xl mx-auto fade-in-up delay-3">
-                    </div>
+                </div>
 
                 <a href="#" data-page="analyzer" class="nav-link mt-8 inline-block btn-primary py-3 px-6 rounded-md font-bold text-lg fade-in-up delay-3 pulse-animate">Start Analyzing</a>
             </header>
@@ -290,7 +291,6 @@
             <p>&copy; 2025 Trade Metrics. All Rights Reserved.</p>
         </div>
     </footer>
-
-    <script src="script.js"></script>
+    <script src="src/main.js" type="module"></script>
 </body>
 </html>
