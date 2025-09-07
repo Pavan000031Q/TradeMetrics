@@ -3,9 +3,11 @@ import { showCustomMessage } from './ui.js';
 // Configuration for news feeds
 const NEWS_FEEDS = [
     { name: 'Investing.com', url: 'https://www.investing.com/rss/news_25.rss' },
-    { name: 'Reuters', url: 'https://www.reuters.com/tools/rss/feeds/businessNews' },
-    { name: 'Moneycontrol (Indian Markets)', url: 'https://www.moneycontrol.com/rss/latestnews.xml' },
-    { name: 'Economic Times', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' }
+    { name: 'Reuters (Business)', url: 'http://feeds.reuters.com/reuters/businessNews' },
+    { name: 'Moneycontrol (Indian Markets)', url: 'https://www.moneycontrol.com/rss/markets.xml' }, // Updated URL for markets
+    { name: 'Economic Times', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' },
+    { name: 'Livemint (Markets)', url: 'https://lifestyle.livemint.com/rss/smart-living/innovation' },
+    { name: 'The Hindu Business Line', url: 'https://www.thehindubusinessline.com/news/fe/feed/' }
 ];
 
 // CORS proxy to fetch and convert RSS to JSON
@@ -127,24 +129,28 @@ function displayNews(newsData, filter = '') {
 
     filteredNews.forEach(article => {
         const newsEl = document.createElement('div');
-        newsEl.className = 'bg-black border border-gray-800 rounded-lg p-4 flex flex-col hover:border-daa520 transition-colors duration-200';
+        newsEl.className = 'news-card bg-black border border-gray-800 rounded-lg p-4 flex flex-col hover:border-daa520 transition-colors duration-200 cursor-pointer';
+        newsEl.dataset.content = JSON.stringify(article);
+        
+        const imageUrl = article.image;
+        const imageHtml = imageUrl ? `<div class="w-full h-36 mb-4 overflow-hidden rounded-md"><img src="${imageUrl}" alt="News Image" class="w-full h-full object-cover"></div>` : '';
+
         newsEl.innerHTML = `
+            ${imageHtml}
             <div>
                 <span class="text-xs font-semibold uppercase primary-text">${article.source}</span>
-                <h3 class="text-lg font-bold mt-2 text-white cursor-pointer" data-content='${JSON.stringify(article)}'>${article.title}</h3>
+                <h3 class="text-lg font-bold mt-2 text-white">${article.title}</h3>
                 <p class="text-sm text-gray-400 mt-2 flex-grow">${article.summary}</p>
             </div>
             <div class="text-xs text-gray-500 mt-4 flex justify-between items-center">
                 <span class="flex-grow">${article.source} | ${article.date} ${article.time}</span>
-                <a href="#" data-content='${JSON.stringify(article)}' class="read-more-link text-sm primary-text hover:underline">Read more</a>
             </div>
         `;
         newsContainer.appendChild(newsEl);
     });
 
-    document.querySelectorAll('.read-more-link, h3').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
+    document.querySelectorAll('.news-card').forEach(card => {
+        card.addEventListener('click', (e) => {
             const articleData = JSON.parse(e.currentTarget.dataset.content);
             openFullArticleModal(articleData);
         });
@@ -213,17 +219,23 @@ async function fetchAllNews() {
             const response = await fetch(`${CORS_PROXY}${encodeURIComponent(feed.url)}`);
             const data = await response.json();
             if (data.status === 'ok' && data.items) {
-                const articles = data.items.map(item => ({
-                    title: item.title,
-                    summary: item.description.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...',
-                    content: item.content,
-                    link: item.link,
-                    source: data.feed.title || fee.name,
-                    pubDate: item.pubDate,
-                    date: new Date(item.pubDate).toLocaleDateString(),
-                    time: new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    image: item.enclosure?.link || item.thumbnail
-                }));
+                const articles = data.items.map(item => {
+                    // Look for an image in the description or enclosure
+                    const imgMatch = item.content?.match(/<img[^>]+src="([^">]+)"/);
+                    const imageUrl = item.enclosure?.link || item.thumbnail || (imgMatch ? imgMatch[1] : null);
+
+                    return {
+                        title: item.title,
+                        summary: item.description.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...',
+                        content: item.content,
+                        link: item.link,
+                        source: data.feed.title || feed.name,
+                        pubDate: item.pubDate,
+                        date: new Date(item.pubDate).toLocaleDateString(),
+                        time: new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        image: imageUrl
+                    };
+                });
                 allNews = allNews.concat(articles);
             }
         } catch (error) {
