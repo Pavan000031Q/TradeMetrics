@@ -309,7 +309,7 @@ function setupApplication() {
     setupNavigation(auth);
     setupCalculators();
     // Pass the db and auth instances to the news module
-    setupNews(db, auth);
+    setupNews();
     // Pass the db and auth instances to the portfolio module
     setupPortfolio(db, auth);
     // Pass the db and auth instances to the watchlist module

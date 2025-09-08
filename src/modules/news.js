@@ -1,9 +1,6 @@
 import { showCustomMessage } from './ui.js';
-// NEW: Import Firestore and Auth functions
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-// Configuration (Unchanged)
+// Configuration
 const NEWS_FEEDS = [
     { name: 'Investing.com', url: 'https://www.investing.com/rss/news_25.rss' },
     { name: 'Reuters (Business)', url: 'http://feeds.reuters.com/reuters/businessNews' },
@@ -14,43 +11,72 @@ const NEWS_FEEDS = [
 ];
 const CORS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const MAX_ARTICLES_TO_STORE = 200; // Limit to prevent unlimited document growth
+const DB_NAME = 'TradeMetricsNewsDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'newsCache';
 
 // Module state
 let allNewsCache = [];
-let db, auth;
+let newsDB = null;
 let articleModal = null;
 let articleContent = null;
 let closeArticleModalBtn = null;
 
-// --- NEW: Firestore Data Functions (Replaces IndexedDB) ---
+// --- IndexedDB Data Functions ---
 
-async function saveNewsToFirestore() {
-    if (!auth.currentUser) return;
-    // Keep only the most recent articles
+async function initDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = (event) => {
+            console.error("IndexedDB error:", event.target.errorCode);
+            reject("Error opening DB");
+        };
+
+        request.onsuccess = (event) => {
+            newsDB = event.target.result;
+            resolve();
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+            }
+        };
+    });
+}
+
+async function saveNewsToDB() {
+    if (!newsDB) return;
     const limitedCache = allNewsCache.slice(0, MAX_ARTICLES_TO_STORE);
-    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'news', 'cache');
-    try {
-        await setDoc(userDocRef, { articles: limitedCache, lastUpdated: new Date() });
-    } catch (error) {
-        console.error("Error saving news to Firestore:", error);
-    }
+    const transaction = newsDB.transaction([STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.put({ id: 'cachedArticles', articles: limitedCache, lastUpdated: new Date() });
 }
 
-async function loadNewsFromFirestore() {
-    if (!auth.currentUser) return [];
-    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'news', 'cache');
-    const docSnap = await getDoc(userDocRef);
-    if (docSnap.exists()) {
-        return docSnap.data().articles || [];
-    }
-    return [];
+async function loadNewsFromDB() {
+    if (!newsDB) return [];
+    return new Promise((resolve) => {
+        const transaction = newsDB.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get('cachedArticles');
+
+        request.onsuccess = () => {
+            resolve(request.result ? request.result.articles : []);
+        };
+        request.onerror = () => {
+            resolve([]); // Resolve with empty array on error
+        };
+    });
 }
+
 
 async function fetchAndRenderNews() {
     const newsContainer = document.getElementById('news-container');
     if (!newsContainer) return;
 
-    // Display cached news immediately for a fast UI response
+    // Display cached news immediately
     displayNews(allNewsCache);
     if (allNewsCache.length === 0) {
         newsContainer.innerHTML = '<div class="col-span-full text-center p-4"><div class="loader"></div><p class="text-gray-400 mt-2">Fetching live news...</p></div>';
@@ -59,17 +85,12 @@ async function fetchAndRenderNews() {
     try {
         const liveNews = await fetchAllNews();
         
-        // --- Anti-Duplication Logic ---
-        // Create a set of existing article links for a quick lookup
         const existingLinks = new Set(allNewsCache.map(article => article.link));
-        // Filter out any articles we already have
         const newArticles = liveNews.filter(article => !existingLinks.has(article.link));
 
         if (newArticles.length > 0) {
-            // Add only the new articles to the front of our cache
             allNewsCache = [...newArticles, ...allNewsCache];
-            await saveNewsToFirestore();
-            // Re-render the UI with the new articles included
+            await saveNewsToDB();
             displayNews(allNewsCache, document.getElementById('newsSearchInput').value);
         }
 
@@ -127,24 +148,12 @@ function displayNews(newsData, filter = '') {
     });
 }
 
-// The main setup function
-export function setupNews(database, authentication) {
-    db = database;
-    auth = authentication;
+export async function setupNews() {
+    await initDB(); // Initialize the database first
+    allNewsCache = await loadNewsFromDB(); // Load news from the local DB
+    fetchAndRenderNews(); // Then fetch new articles
     
     const newsSearchInput = document.getElementById('newsSearchInput');
-    
-    // NEW: Listen for auth state to load/clear data
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            allNewsCache = await loadNewsFromFirestore();
-            fetchAndRenderNews(); // This will display cache and fetch new
-        } else {
-            allNewsCache = [];
-            displayNews(allNewsCache);
-        }
-    });
-    
     newsSearchInput.addEventListener('input', (e) => {
         displayNews(allNewsCache, e.target.value);
     });
