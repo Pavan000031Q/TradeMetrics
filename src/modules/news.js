@@ -1,111 +1,81 @@
 import { showCustomMessage } from './ui.js';
+// NEW: Import Firestore and Auth functions
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-// Configuration for news feeds
+// Configuration (Unchanged)
 const NEWS_FEEDS = [
     { name: 'Investing.com', url: 'https://www.investing.com/rss/news_25.rss' },
     { name: 'Reuters (Business)', url: 'http://feeds.reuters.com/reuters/businessNews' },
-    { name: 'Moneycontrol (Indian Markets)', url: 'https://www.moneycontrol.com/rss/markets.xml' }, // Updated URL for markets
+    { name: 'Moneycontrol (Indian Markets)', url: 'https://www.moneycontrol.com/rss/markets.xml' },
     { name: 'Economic Times', url: 'https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms' },
     { name: 'Livemint (Markets)', url: 'https://lifestyle.livemint.com/rss/smart-living/innovation' },
     { name: 'The Hindu Business Line', url: 'https://www.thehindubusinessline.com/news/fe/feed/' }
 ];
-
-// CORS proxy to fetch and convert RSS to JSON
 const CORS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const MAX_ARTICLES_TO_STORE = 200; // Limit to prevent unlimited document growth
 
-// Full-page modal elements
+// Module state
+let allNewsCache = [];
+let db, auth;
 let articleModal = null;
 let articleContent = null;
 let closeArticleModalBtn = null;
 
-// --- IndexedDB Constants and Functions ---
-const DB_NAME = 'TradeMetricsDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'news';
+// --- NEW: Firestore Data Functions (Replaces IndexedDB) ---
 
-function openDatabase() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains(STORE_NAME)) {
-                db.createObjectStore(STORE_NAME, { keyPath: 'link' });
-            }
-        };
-
-        request.onsuccess = (event) => {
-            resolve(event.target.result);
-        };
-
-        request.onerror = (event) => {
-            reject(`IndexedDB error: ${event.target.errorCode}`);
-        };
-    });
+async function saveNewsToFirestore() {
+    if (!auth.currentUser) return;
+    // Keep only the most recent articles
+    const limitedCache = allNewsCache.slice(0, MAX_ARTICLES_TO_STORE);
+    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'news', 'cache');
+    try {
+        await setDoc(userDocRef, { articles: limitedCache, lastUpdated: new Date() });
+    } catch (error) {
+        console.error("Error saving news to Firestore:", error);
+    }
 }
 
-async function saveNewsHistory(news) {
-    const db = await openDatabase();
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-
-    news.forEach(article => {
-        store.put(article);
-    });
-
-    return new Promise((resolve) => {
-        transaction.oncomplete = () => {
-            resolve();
-        };
-    });
-}
-
-async function getNewsHistory() {
-    const db = await openDatabase();
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.getAll();
-
-    return new Promise((resolve, reject) => {
-        request.onsuccess = () => {
-            resolve(request.result);
-        };
-        request.onerror = () => {
-            reject(`Failed to get data from IndexedDB: ${request.error}`);
-        };
-    });
+async function loadNewsFromFirestore() {
+    if (!auth.currentUser) return [];
+    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'news', 'cache');
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+        return docSnap.data().articles || [];
+    }
+    return [];
 }
 
 async function fetchAndRenderNews() {
     const newsContainer = document.getElementById('news-container');
     if (!newsContainer) return;
 
-    // Load and display cached history immediately for fast load
-    const cachedNews = await getNewsHistory();
-    if (cachedNews.length > 0) {
-        displayNews(cachedNews);
-    } else {
+    // Display cached news immediately for a fast UI response
+    displayNews(allNewsCache);
+    if (allNewsCache.length === 0) {
         newsContainer.innerHTML = '<div class="col-span-full text-center p-4"><div class="loader"></div><p class="text-gray-400 mt-2">Fetching live news...</p></div>';
     }
 
     try {
         const liveNews = await fetchAllNews();
         
-        // Merge live news with cached history, avoiding duplicates by link
-        const existingLinks = new Set(cachedNews.map(article => article.link));
+        // --- Anti-Duplication Logic ---
+        // Create a set of existing article links for a quick lookup
+        const existingLinks = new Set(allNewsCache.map(article => article.link));
+        // Filter out any articles we already have
         const newArticles = liveNews.filter(article => !existingLinks.has(article.link));
-        
-        const combinedNews = [...newArticles, ...cachedNews];
-        
-        // Sort news by date, newest first
-        combinedNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
-        saveNewsHistory(combinedNews);
-        displayNews(combinedNews);
+        if (newArticles.length > 0) {
+            // Add only the new articles to the front of our cache
+            allNewsCache = [...newArticles, ...allNewsCache];
+            await saveNewsToFirestore();
+            // Re-render the UI with the new articles included
+            displayNews(allNewsCache, document.getElementById('newsSearchInput').value);
+        }
 
     } catch (error) {
         console.error('Error fetching and rendering news:', error);
-        if (cachedNews.length === 0) {
+        if (allNewsCache.length === 0) {
              newsContainer.innerHTML = '<div class="col-span-full text-center text-red-400 p-4">Could not fetch live news at this time.</div>';
         }
     }
@@ -122,7 +92,7 @@ function displayNews(newsData, filter = '') {
         (article.source && article.source.toLowerCase().includes(lowercaseFilter))
     );
 
-    if (filteredNews.length === 0) {
+    if (filteredNews.length === 0 && allNewsCache.length > 0) {
         newsContainer.innerHTML = '<p class="text-center col-span-full text-gray-500">No news found for your search.</p>';
         return;
     }
@@ -157,13 +127,39 @@ function displayNews(newsData, filter = '') {
     });
 }
 
+// The main setup function
+export function setupNews(database, authentication) {
+    db = database;
+    auth = authentication;
+    
+    const newsSearchInput = document.getElementById('newsSearchInput');
+    
+    // NEW: Listen for auth state to load/clear data
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            allNewsCache = await loadNewsFromFirestore();
+            fetchAndRenderNews(); // This will display cache and fetch new
+        } else {
+            allNewsCache = [];
+            displayNews(allNewsCache);
+        }
+    });
+    
+    newsSearchInput.addEventListener('input', (e) => {
+        displayNews(allNewsCache, e.target.value);
+    });
+    
+    // Refresh news every 30 minutes
+    setInterval(fetchAndRenderNews, 1800000);
+}
+
 function openFullArticleModal(article) {
     if (!articleModal) {
         articleModal = document.createElement('div');
         articleModal.className = 'fixed inset-0 z-50 bg-black bg-opacity-90 flex flex-col items-center justify-center';
         articleModal.innerHTML = `
             <div class="relative w-full h-full p-4 md:p-8 overflow-y-auto">
-                <button id="closeArticleModalBtn" class="absolute top-4 right-4 md:top-8 md:right-8 text-white z-50 hover:text-red-400 transition-colors">
+                <button id="closeArticleModalBtn" class="absolute top-4 right-4 md:top-8 md-right-8 text-white z-50 hover:text-red-400 transition-colors">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 <div id="articleContent" class="bg-gray-900 rounded-lg p-6 md:p-10 w-full md:w-3/4 lg:w-2/3 mx-auto"></div>
@@ -181,8 +177,6 @@ function openFullArticleModal(article) {
             }
         });
     }
-
-    // Set article content
     let imageHtml = article.image ? `<img src="${article.image}" class="w-full h-auto rounded-lg mb-4" alt="Article image">` : '';
     articleContent.innerHTML = `
         ${imageHtml}
@@ -198,20 +192,6 @@ function openFullArticleModal(article) {
     articleModal.classList.remove('hidden');
 }
 
-export function setupNews() {
-    const newsSearchInput = document.getElementById('newsSearchInput');
-    
-    fetchAndRenderNews();
-    
-    newsSearchInput.addEventListener('input', async (e) => {
-        const allNewsData = await getNewsHistory();
-        displayNews(allNewsData, e.target.value);
-    });
-    
-    setInterval(fetchAndRenderNews, 1800000);
-}
-
-// A helper function to fetch all news for the search filter
 async function fetchAllNews() {
     let allNews = [];
     for (const feed of NEWS_FEEDS) {
@@ -220,7 +200,6 @@ async function fetchAllNews() {
             const data = await response.json();
             if (data.status === 'ok' && data.items) {
                 const articles = data.items.map(item => {
-                    // Look for an image in the description or enclosure
                     const imgMatch = item.content?.match(/<img[^>]+src="([^">]+)"/);
                     const imageUrl = item.enclosure?.link || item.thumbnail || (imgMatch ? imgMatch[1] : null);
 
@@ -242,5 +221,6 @@ async function fetchAllNews() {
             console.error(`Error fetching news from ${feed.name}:`, error);
         }
     }
-    return allNews;
+    // Sort all fetched news by date before returning
+    return allNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 }

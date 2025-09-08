@@ -1,32 +1,67 @@
 import { showCustomMessage } from './ui.js';
+// NEW: Import Firestore and Auth functions
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
+// Global variables to hold the watchlist state
 let watchlist = [];
+let db, auth; // NEW: To hold Firebase instances
 
-function saveWatchlist() {
-    localStorage.setItem('tradeMetricsWatchlist', JSON.stringify(watchlist));
+// --- NEW: Firestore Data Functions ---
+
+async function saveWatchlistToFirestore() {
+    if (!auth.currentUser) return;
+    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'watchlist', 'data');
+    try {
+        // We save the entire watchlist array in a single document
+        await setDoc(userDocRef, { items: watchlist });
+    } catch (error) {
+        console.error("Error saving watchlist to Firestore:", error);
+        showCustomMessage("Could not save watchlist to the cloud.", "error");
+    }
 }
 
-function loadWatchlist() {
-    const saved = localStorage.getItem('tradeMetricsWatchlist');
-    if (saved) watchlist = JSON.parse(saved);
+async function loadWatchlistFromFirestore() {
+    if (!auth.currentUser) return;
+    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'watchlist', 'data');
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+        watchlist = docSnap.data().items || [];
+    } else {
+        watchlist = []; // If no data, start with an empty list
+    }
 }
 
-export function setupWatchlist() {
+// CHANGED: The main setup function now accepts db and auth instances
+export function setupWatchlist(database, authentication) {
+    db = database;
+    auth = authentication;
+
     const watchlistForm = document.getElementById('watchlistForm');
     const watchlistContainer = document.getElementById('watchlistContainer');
 
-    loadWatchlist();
-    renderWatchlist();
+    // NEW: Listen for authentication changes to load/clear data
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // User logged in, load their watchlist
+            await loadWatchlistFromFirestore();
+            renderWatchlist();
+        } else {
+            // User logged out, clear the watchlist
+            watchlist = [];
+            renderWatchlist();
+        }
+    });
 
     if (watchlistForm) {
-        watchlistForm.addEventListener('submit', (e) => {
+        watchlistForm.addEventListener('submit', async (e) => { // CHANGED: Made async
             e.preventDefault();
             const stockName = document.getElementById('watchlistStockName').value;
             const targetPrice = parseFloat(document.getElementById('watchlistTargetPrice').value);
 
             if (stockName && !isNaN(targetPrice) && targetPrice > 0) {
                 watchlist.push({ id: Date.now(), name: stockName, target: targetPrice });
-                saveWatchlist();
+                await saveWatchlistToFirestore(); // CHANGED: Save to Firestore
                 renderWatchlist();
                 watchlistForm.reset();
             } else {
@@ -56,10 +91,10 @@ export function setupWatchlist() {
                 watchlistContainer.appendChild(itemEl);
             });
             document.querySelectorAll('.delete-watchlist-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', async (e) => { // CHANGED: Made async
                     const id = Number(e.currentTarget.dataset.id);
                     watchlist = watchlist.filter(item => item.id !== id);
-                    saveWatchlist();
+                    await saveWatchlistToFirestore(); // CHANGED: Save to Firestore
                     renderWatchlist();
                 });
             });

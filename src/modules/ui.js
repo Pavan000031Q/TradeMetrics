@@ -1,7 +1,6 @@
 export function showPage(pageId) {
     const pageContents = document.querySelectorAll('.page-content');
     const navLinks = document.querySelectorAll('.nav-link');
-    const mobileMenu = document.getElementById('mobile-menu');
 
     pageContents.forEach(page => { page.style.display = 'none'; });
     const activePage = document.getElementById(pageId);
@@ -15,25 +14,22 @@ export function showPage(pageId) {
             link.classList.add('active');
         }
     });
-    if (mobileMenu && !mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+    // The mobile menu is now hidden from the click handler in main.js
 }
 
+/**
+ * Sets up UI event listeners. This function now only handles the mobile menu toggle.
+ * Page navigation logic is handled in main.js to incorporate authentication checks.
+ */
 export function setupNav() {
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const navLinks = document.querySelectorAll('a[data-page]');
     
     if (mobileMenuButton) {
-        mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
-    }
-
-    navLinks.forEach(link => {
-         link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const pageId = link.getAttribute('data-page');
-            showPage(pageId);
+        mobileMenuButton.addEventListener('click', () => { 
+            mobileMenu.classList.toggle('hidden'); 
         });
-    });
+    }
 }
 
 // Custom function to show a modal instead of alert()

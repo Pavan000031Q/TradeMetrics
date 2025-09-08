@@ -1,24 +1,52 @@
 import { showCustomMessage } from './ui.js';
+// NEW: Import Firestore and AUTH functions
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
+// Global variables to hold the portfolio state
 let portfolio = [];
 let tradeHistory = [];
 let editingStockId = null;
 let portfolioChart = null;
+let db, auth; 
 
-// --- Local Storage Functions ---
-function savePortfolio() { localStorage.setItem('tradeMetricsPortfolio', JSON.stringify(portfolio)); }
-function loadPortfolio() {
-    const saved = localStorage.getItem('tradeMetricsPortfolio');
-    if (saved) portfolio = JSON.parse(saved);
+// --- Firestore Data Functions ---
+
+async function saveDataToFirestore() {
+    if (!auth.currentUser) return;
+    
+    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'portfolio', 'data');
+    try {
+        await setDoc(userDocRef, {
+            holdings: portfolio,
+            history: tradeHistory
+        });
+    } catch (error) {
+        console.error("Error saving data to Firestore:", error);
+        showCustomMessage("Could not save portfolio to the cloud.", "error");
+    }
 }
 
-function saveTradeHistory() { localStorage.setItem('tradeMetricsHistory', JSON.stringify(tradeHistory)); }
-function loadTradeHistory() {
-    const saved = localStorage.getItem('tradeMetricsHistory');
-    if (saved) tradeHistory = JSON.parse(saved);
+async function loadDataFromFirestore() {
+    if (!auth.currentUser) return; 
+    
+    const userDocRef = doc(db, 'users', auth.currentUser.uid, 'portfolio', 'data');
+    const docSnap = await getDoc(userDocRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        portfolio = data.holdings || [];
+        tradeHistory = data.history || [];
+    } else {
+        portfolio = [];
+        tradeHistory = [];
+    }
 }
 
-export function setupPortfolio() {
+export async function setupPortfolio(database, authentication) {
+    db = database;
+    auth = authentication;
+    
     // Portfolio Elements
     const addStockBtn = document.getElementById('addStockBtn');
     const stockModal = document.getElementById('stockModal');
@@ -26,7 +54,6 @@ export function setupPortfolio() {
     const stockForm = document.getElementById('stockForm');
     const portfolioList = document.getElementById('portfolioList');
     const portfolioInvestmentEl = document.getElementById('portfolioInvestment');
-    const checkHealthBtn = document.getElementById('checkHealthBtn');
     
     // Sell Modal Elements
     const sellStockModal = document.getElementById('sellStockModal');
@@ -35,13 +62,26 @@ export function setupPortfolio() {
     const sellStockIdInput = document.getElementById('sellStockId');
     const tradeHistoryContainer = document.getElementById('tradeHistory');
     
-    // --- Initial Load ---
-    loadPortfolio();
-    loadTradeHistory();
-    renderPortfolio();
-    renderTradeHistory();
+    // --- NEW: Auth State Change Listener ---
+    // This is the core of the fix. It reacts to logins and logouts.
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // A user has logged in. Load their specific data.
+            await loadDataFromFirestore();
+            renderPortfolio();
+            renderTradeHistory();
+        } else {
+            // The user has logged out. Clear all data from memory.
+            portfolio = [];
+            tradeHistory = [];
+            renderPortfolio();
+            renderTradeHistory();
+        }
+    });
 
-    // --- Portfolio Management Logic ---
+    // --- REMOVED: The initial data load from here has been moved into the listener above ---
+    
+    // --- Portfolio Management Logic (remains the same) ---
     if (addStockBtn) {
         addStockBtn.addEventListener('click', () => {
             editingStockId = null;
@@ -60,7 +100,7 @@ export function setupPortfolio() {
     });
 
     if (stockForm) {
-        stockForm.addEventListener('submit', (e) => {
+        stockForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const stockData = {
                 name: document.getElementById('stockName').value,
@@ -76,15 +116,15 @@ export function setupPortfolio() {
             } else {
                 portfolio.push({ ...stockData, id: Date.now() });
             }
-
+            
+            await saveDataToFirestore();
             renderPortfolio();
-            savePortfolio();
             stockForm.reset();
             stockModal.style.display = 'none';
         });
     }
 
-    function handleEditStock(e) {
+    async function handleEditStock(e) {
         const id = Number(e.currentTarget.dataset.id);
         const stock = portfolio.find(s => s.id === id);
         if (stock) {
@@ -99,13 +139,13 @@ export function setupPortfolio() {
         }
     }
 
-    function handleDeleteStock(e) {
+    async function handleDeleteStock(e) {
         const id = Number(e.currentTarget.dataset.id);
         const userConfirmed = window.confirm('Are you sure you want to delete this holding? This action cannot be undone.');
         if (userConfirmed) {
             portfolio = portfolio.filter(s => s.id !== id);
+            await saveDataToFirestore();
             renderPortfolio();
-            savePortfolio();
         }
     }
 
@@ -128,7 +168,7 @@ export function setupPortfolio() {
     });
 
     if (sellStockForm) {
-        sellStockForm.addEventListener('submit', (e) => {
+        sellStockForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const sellPrice = parseFloat(document.getElementById('sellPrice').value);
             const stockId = Number(sellStockIdInput.value);
@@ -153,9 +193,8 @@ export function setupPortfolio() {
                 });
 
                 portfolio.splice(stockIndex, 1);
-
-                savePortfolio();
-                saveTradeHistory();
+                
+                await saveDataToFirestore();
                 renderPortfolio();
                 renderTradeHistory();
 
@@ -264,9 +303,7 @@ export function setupPortfolio() {
                         callbacks: {
                             label: function(context) {
                                 let label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
+                                if (label) { label += ': '; }
                                 if (context.parsed !== null) {
                                     label += new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(context.parsed);
                                 }
