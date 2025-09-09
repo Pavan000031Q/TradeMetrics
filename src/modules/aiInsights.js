@@ -106,7 +106,7 @@ export function setupSwingTradeAnalysis() {
             };
             
             // NOTE: The user needs to add their own webhook URL here
-            const webhookUrl = 'http://localhost:5678/webhook-test/swing-trade-analysis';
+            const webhookUrl = 'http://localhost:5678/webhook/swing-trade-analysis';
 
             fetch(webhookUrl, {
                 method: 'POST',

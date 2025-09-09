@@ -73,7 +73,7 @@ async function handleAiAnalysis() {
     };
 
     // NOTE: Replace this with your actual n8n webhook URL
-    const webhookUrl = 'http://localhost:5678/webhook-test/stockhealth'; 
+    const webhookUrl = 'http://localhost:5678/webhook/stockhealth'; 
 
     fetch(webhookUrl, {
         method: 'POST',
