@@ -43,12 +43,84 @@ async function loadDataFromFirestore() {
     }
 }
 
+async function handleAiAnalysis() {
+    if (!auth.currentUser) {
+        showCustomMessage('Please log in to use this feature.', 'error');
+        return;
+    }
+    
+    if (portfolio.length === 0) {
+        showCustomMessage('Your portfolio is empty. Add a holding to get an analysis.', 'error');
+        return;
+    }
+
+    const aiModal = document.getElementById('aiAnalysisModal');
+    const aiContent = document.getElementById('aiAnalysisContent');
+    const closeAiBtn = document.getElementById('closeAiModalBtn');
+
+    aiModal.style.display = 'flex';
+    aiContent.innerHTML = `<div class="loader"></div><p class="text-center text-yellow-400">Analyzing your portfolio with AI...</p>`;
+
+    // Close modal event listener
+    closeAiBtn.addEventListener('click', () => { aiModal.style.display = 'none'; });
+    window.addEventListener('click', (event) => {
+        if (event.target === aiModal) { aiModal.style.display = 'none'; }
+    });
+
+    const dataToSend = {
+        portfolio: portfolio,
+        history: tradeHistory
+    };
+
+    // NOTE: Replace this with your actual n8n webhook URL
+    const webhookUrl = 'http://localhost:5678/webhook-test/stockhealth'; 
+
+    fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Webhook error: ${response.status}`);
+        }
+        return response.json(); 
+    })
+    .then(data => {
+        const analysisHtml = `
+            <div class="space-y-6">
+                <div>
+                    <p class="text-gray-400 mt-2">${data.portfolio_analysis}</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold primary-text">Short-Term Outlook</h3>
+                    <p class="text-gray-400 mt-2 whitespace-pre-wrap">${data.short_term_outlook}</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold primary-text">Long-Term Outlook</h3>
+                    <p class="text-gray-400 mt-2 whitespace-pre-wrap">${data.long_term_outlook}</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold primary-text">Summary</h3>
+                    <p class="text-gray-400 mt-2 whitespace-pre-wrap">${data.summary}</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('aiAnalysisContent').innerHTML = analysisHtml;
+    })
+    .catch(error => {
+        document.getElementById('aiAnalysisContent').innerHTML = `<p class="text-red-400 text-center">Error: Could not get AI analysis.</p><p class="text-gray-400 text-center mt-2">${error.message}</p>`;
+    });
+}
+
+
 export async function setupPortfolio(database, authentication) {
     db = database;
     auth = authentication;
     
     // Portfolio Elements
     const addStockBtn = document.getElementById('addStockBtn');
+    const checkHealthBtn = document.getElementById('checkHealthBtn');
     const stockModal = document.getElementById('stockModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const stockForm = document.getElementById('stockForm');
@@ -90,6 +162,10 @@ export async function setupPortfolio(database, authentication) {
             document.getElementById('modalSubmitBtn').textContent = 'Add to Portfolio';
             stockModal.style.display = 'flex';
         });
+    }
+
+    if (checkHealthBtn) {
+        checkHealthBtn.addEventListener('click', handleAiAnalysis);
     }
 
     if (closeModalBtn) {

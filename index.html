@@ -14,7 +14,6 @@
 </head>
 <body class="text-gray-300 flex flex-col min-h-screen">
 
-    <!-- Notification Container (for general app notifications) -->
     <div id="notification-container" class="fixed top-5 right-5 z-50 space-y-3"></div>
 
     <nav class="bg-black bg-opacity-80 backdrop-blur-md shadow-lg sticky top-0 z-40 border-b border-gray-800">
@@ -38,7 +37,6 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <!-- Profile Button and Dropdown -->
                     <div class="relative">
                         <button id="profile-btn" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none">
                             <span id="profile-content">
@@ -108,7 +106,6 @@
                 </div>
             </section>
         </div>
-        <!-- Other Page Contents (intraday, swing, etc.) remain unchanged -->
         <div id="intraday" class="page-content" style="display:none;">
             <h2 class="text-3xl font-bold text-center mb-8 primary-text">Intraday Trading Insights</h2>
             <div class="text-center text-gray-400 mt-16">
@@ -276,26 +273,21 @@
         </div>
     </main>
     
-    <!-- REVAMPED AUTH MODAL -->
     <div id="authModal" class="modal" style="display:none;">
         <div class="modal-content-auth relative">
             <button class="absolute top-4 right-4 text-white hover:text-gray-400" id="closeAuthModal">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             
-            <!-- In-Modal Message Area -->
             <div id="authMessage" class="auth-message hidden"></div>
             
             <div id="auth-container">
-                <!-- Login Method Tabs -->
                 <div class="flex border-b border-gray-700 mb-6">
                     <button id="show-email-login-tab" class="auth-tab active">Email</button>
                     <button id="show-phone-login-tab" class="auth-tab">Phone</button>
                 </div>
 
-                <!-- Email Login/Signup Container -->
                 <div id="email-auth-container">
-                    <!-- Login Form -->
                     <div id="login-form">
                         <h2 class="text-2xl font-bold text-center primary-text mb-6">Welcome Back</h2>
                         <form id="signInForm" class="space-y-4">
@@ -320,7 +312,6 @@
                         </p>
                     </div>
         
-                    <!-- Sign Up Form -->
                     <div id="signup-form" class="hidden">
                         <h2 class="text-2xl font-bold text-center primary-text mb-6">Create an Account</h2>
                         <form id="signUpForm" class="space-y-4">
@@ -351,7 +342,6 @@
                     </div>
                 </div>
 
-                <!-- Phone Login Container -->
                 <div id="phone-auth-container" class="hidden">
                      <h2 class="text-2xl font-bold text-center primary-text mb-6">Sign in with Phone</h2>
                      <div id="phone-entry-form">

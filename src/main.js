@@ -6,7 +6,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-import { showPage, setupNav } from './modules/ui.js';
+import { showPage, setupNav, showCustomMessage } from './modules/ui.js';
 import { setupCalculators } from './modules/calculators.js';
 import { setupNews } from './modules/news.js';
 import { setupPortfolio } from './modules/portfolio.js';
