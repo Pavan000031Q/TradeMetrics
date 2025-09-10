@@ -121,8 +121,11 @@ function displayNews(newsData, filter = '') {
     filteredNews.forEach(article => {
         const newsEl = document.createElement('div');
         newsEl.className = 'news-card bg-black border border-gray-800 rounded-lg p-4 flex flex-col hover:border-daa520 transition-colors duration-200 cursor-pointer';
-        newsEl.dataset.content = JSON.stringify(article);
-        
+        // Check if article is valid before setting dataset
+        if (article) {
+             newsEl.dataset.content = JSON.stringify(article);
+        }
+       
         const imageUrl = article.image;
         const imageHtml = imageUrl ? `<div class="w-full h-36 mb-4 overflow-hidden rounded-md"><img src="${imageUrl}" alt="News Image" class="w-full h-full object-cover"></div>` : '';
 
@@ -142,8 +145,13 @@ function displayNews(newsData, filter = '') {
 
     document.querySelectorAll('.news-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            const articleData = JSON.parse(e.currentTarget.dataset.content);
-            openFullArticleModal(articleData);
+            // FIX: Add a check to ensure dataset exists before accessing it
+            if (e.currentTarget.dataset && e.currentTarget.dataset.content) {
+                const articleData = JSON.parse(e.currentTarget.dataset.content);
+                openFullArticleModal(articleData);
+            } else {
+                console.error("Article data not found on clicked element.");
+            }
         });
     });
 }

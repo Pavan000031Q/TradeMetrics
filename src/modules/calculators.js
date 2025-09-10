@@ -1,4 +1,4 @@
-import { showCustomMessage } from './ui.js';
+import { showToastNotification } from '../main.js';
 
 export function setupCalculators() {
     // P/L Calculator Elements
@@ -20,10 +20,12 @@ export function setupCalculators() {
             const investedAmount = parseFloat(document.getElementById('plInvestedAmount').value);
             const buyPrice = parseFloat(document.getElementById('plBuyPrice').value);
             const sellPrice = parseFloat(document.getElementById('plSellPrice').value);
+
             if (isNaN(investedAmount) || isNaN(buyPrice) || isNaN(sellPrice) || buyPrice <= 0) {
-                showCustomMessage('Please enter valid Invested Amount, Buy Price, and Sell Price.', 'error');
+                showToastNotification('Please enter valid Invested Amount, Buy Price, and Sell Price.', 'error');
                 return;
             }
+
             const quantity = investedAmount / buyPrice;
             const totalSellValue = sellPrice * quantity;
             const netPl = totalSellValue - investedAmount;
@@ -37,6 +39,7 @@ export function setupCalculators() {
             plAmountEl.className = `font-bold ${plClass}`;
             plPercentageEl.className = `font-bold ${plClass}`;
             plTotalValueEl.className = `font-bold`;
+
             plResultEl.classList.remove('hidden');
         });
     }
@@ -47,10 +50,13 @@ export function setupCalculators() {
             const currentPrice = parseFloat(document.getElementById('tsCurrentPrice').value);
             const riskPercent = parseFloat(document.getElementById('tsRiskPercent').value);
             const rewardMultiplier = parseFloat(document.getElementById('tsRewardMultiplier').value);
-            if (isNaN(capital) || isNaN(currentPrice) || isNaN(riskPercent) || isNaN(rewardMultiplier) || capital <= 0 || currentPrice <= 0 || riskPercent <= 0 || rewardMultiplier <= 0) {
-                showCustomMessage('Please enter valid values for all fields.', 'error');
+
+            if (isNaN(capital) || isNaN(currentPrice) || isNaN(riskPercent) || isNaN(rewardMultiplier) || 
+                capital <= 0 || currentPrice <= 0 || riskPercent <= 0 || rewardMultiplier <= 0) {
+                showToastNotification('Please enter valid values for all fields.', 'error');
                 return;
             }
+
             const quantity = Math.floor(capital / currentPrice);
             const stopLossPrice = currentPrice * (1 - riskPercent / 100);
             const riskAmount = currentPrice - stopLossPrice;
@@ -59,6 +65,7 @@ export function setupCalculators() {
             quantityToBuyEl.textContent = `${quantity} shares`;
             stopLossPriceEl.textContent = `₹${stopLossPrice.toFixed(2)}`;
             targetPriceEl.textContent = `₹${targetPrice.toFixed(2)}`;
+
             tsResultEl.classList.remove('hidden');
         });
     }

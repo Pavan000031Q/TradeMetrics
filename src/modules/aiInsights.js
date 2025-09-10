@@ -1,6 +1,5 @@
-// src/modules/aiInsights.js
-
-import { showCustomMessage, showPage } from './ui.js';
+import { showToastNotification } from '../main.js';
+import { showPage } from './ui.js';
 
 export function setupSwingTradeAnalysis() {
     const swingPage = document.getElementById('swing');
@@ -12,6 +11,7 @@ export function setupSwingTradeAnalysis() {
     const dropPrompt = document.getElementById('drop-prompt');
     const analyzePatternBtn = document.getElementById('analyzePatternBtn');
     const aiSwingAnalysisResult = document.getElementById('aiSwingAnalysisResult');
+
     let chartImageBase64 = null;
 
     if (dropArea) {
@@ -21,9 +21,11 @@ export function setupSwingTradeAnalysis() {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
         });
+
         ['dragenter', 'dragover'].forEach(eventName => {
             dropArea.addEventListener(eventName, () => dropArea.classList.add('highlight'), false);
         });
+
         ['dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, () => dropArea.classList.remove('highlight'), false);
         });
@@ -70,7 +72,7 @@ export function setupSwingTradeAnalysis() {
                 };
                 reader.readAsDataURL(file);
             } else {
-                showCustomMessage('Please upload an image file.', 'error');
+                showToastNotification('Please upload an image file.', 'error');
             }
         }
     }
@@ -81,22 +83,18 @@ export function setupSwingTradeAnalysis() {
             const exchange = document.getElementById('swingExchange').value;
 
             if (!stockName || !exchange || !chartImageBase64) {
-                showCustomMessage('Please provide a stock name, exchange, and upload a chart image.', 'error');
+                showToastNotification('Please provide a stock name, exchange, and upload a chart image.', 'error');
                 return;
             }
 
             aiSwingAnalysisResult.classList.remove('hidden');
             aiSwingAnalysisResult.innerHTML = `
-                <div class="loader"></div>
-                <p class="text-center text-yellow-400">
-                    🚀 Sending data for AI analysis...
-                </p>
-                <p class="text-center text-gray-400 mt-2">
-                    This process may take 3-4 minutes to complete.
-                </p>
-                <p class="text-center text-gray-400 mt-1">
-                    Please do not close this window.
-                </p>
+                <div class="text-center">
+                    <div class="loader mb-4"></div>
+                    <h3 class="text-xl font-bold primary-text mb-2">🚀 Sending data for AI analysis...</h3>
+                    <p class="text-gray-400 mb-2">This process may take 3-4 minutes to complete.</p>
+                    <p class="text-gray-500 text-sm">Please do not close this window.</p>
+                </div>
             `;
 
             const dataToSend = {
@@ -104,7 +102,7 @@ export function setupSwingTradeAnalysis() {
                 exchange: exchange,
                 imageBase64: chartImageBase64
             };
-            
+
             // NOTE: The user needs to add their own webhook URL here
             const webhookUrl = 'http://localhost:5678/webhook/swing-trade-analysis';
 
@@ -128,21 +126,25 @@ export function setupSwingTradeAnalysis() {
                 } else {
                     aiSwingAnalysisResult.innerHTML = `
                         <div class="text-center">
-                            <h4 class="text-lg font-semibold text-yellow-400">⚠️ Analysis Complete, No PDF URL Found</h4>
-                            <p class="text-gray-400 mt-2">The n8n workflow finished, but did not return a PDF link.</p>
-                            <p class="text-xs text-gray-500 mt-4">Response from webhook: ${JSON.stringify(data)}</p>
+                            <h3 class="text-xl font-bold text-yellow-400 mb-4">Analysis Complete</h3>
+                            <p class="text-gray-400 mb-2">The n8n workflow finished, but did not return a PDF link.</p>
+                            <div class="bg-gray-800 p-4 rounded-lg mt-4">
+                                <p class="text-sm text-gray-300">Response from webhook: ${JSON.stringify(data)}</p>
+                            </div>
                         </div>
                     `;
                 }
             })
             .catch(error => {
-                console.error('Error sending data to webhook:', error);
+                console.error('Error:', error);
                 aiSwingAnalysisResult.innerHTML = `
                     <div class="text-center">
-                        <h4 class="text-lg font-semibold text-red-400">❌ Error Triggering Workflow</h4>
-                        <p class="text-gray-400 mt-2">Could not connect to the n8n webhook.</p>
-                        <p class="text-xs text-gray-500 mt-2">Please ensure your local n8n instance is running and the webhook URL is correct.</p>
-                        <p class="text-xs text-gray-600 mt-4">Details: ${error.message}</p>
+                        <h3 class="text-xl font-bold text-red-400 mb-4">Connection Error</h3>
+                        <p class="text-gray-400 mb-2">Could not connect to the n8n webhook.</p>
+                        <p class="text-gray-400 mb-4">Please ensure your local n8n instance is running and the webhook URL is correct.</p>
+                        <div class="bg-gray-800 p-4 rounded-lg mt-4">
+                            <p class="text-sm text-gray-300">Details: ${error.message}</p>
+                        </div>
                     </div>
                 `;
             });
@@ -151,23 +153,18 @@ export function setupSwingTradeAnalysis() {
 
     function displayPdf(pdfUrl) {
         aiSwingAnalysisResult.innerHTML = `
-            <div class="space-y-4">
-                <div class="text-center">
-                    <h4 class="text-lg font-semibold text-green-400">✅ Analysis Complete!</h4>
-                    <p class="text-gray-400">Your PDF report is ready.</p>
-                </div>
-                <div class="flex justify-center">
-                    <a href="${pdfUrl}" download class="btn-primary py-2 px-4 rounded-md">
-                        Download Report PDF
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-green-400 mb-4">✅ Your PDF report is ready.</h3>
+                <div class="mb-4">
+                    <a href="${pdfUrl}" target="_blank" class="btn-primary inline-block px-6 py-3 rounded-lg">
+                        📄 Download Report
                     </a>
                 </div>
-                <hr class="divider">
-                <div class="text-center text-gray-400">
-                    <p>Report Preview</p>
-                    <p class="text-xs text-gray-500">Note: Display may not work on all browsers.</p>
-                </div>
-                <div class="w-full h-[600px] bg-gray-900 rounded-lg overflow-hidden">
-                    <iframe src="${pdfUrl}" class="w-full h-full border-0"></iframe>
+                <div class="mt-6">
+                    <iframe src="${pdfUrl}" width="100%" height="600" class="border border-gray-700 rounded-lg">
+                        <p class="text-gray-400">Report Preview</p>
+                        <p class="text-gray-500 text-sm">Note: Display may not work on all browsers.</p>
+                    </iframe>
                 </div>
             </div>
         `;

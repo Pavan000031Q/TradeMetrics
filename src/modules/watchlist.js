@@ -1,14 +1,13 @@
-import { showCustomMessage } from './ui.js';
-// NEW: Import Firestore and Auth functions
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { showToastNotification } from '../main.js';
+// Import Firestore and Auth functions
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // Global variables to hold the watchlist state
 let watchlist = [];
-let db, auth; // NEW: To hold Firebase instances
+let db, auth; // To hold Firebase instances
 
-// --- NEW: Firestore Data Functions ---
-
+// Firestore Data Functions
 async function saveWatchlistToFirestore() {
     if (!auth.currentUser) return;
     const userDocRef = doc(db, 'users', auth.currentUser.uid, 'watchlist', 'data');
@@ -17,7 +16,7 @@ async function saveWatchlistToFirestore() {
         await setDoc(userDocRef, { items: watchlist });
     } catch (error) {
         console.error("Error saving watchlist to Firestore:", error);
-        showCustomMessage("Could not save watchlist to the cloud.", "error");
+        showToastNotification("Could not save watchlist to the cloud.", "error");
     }
 }
 
@@ -32,7 +31,7 @@ async function loadWatchlistFromFirestore() {
     }
 }
 
-// CHANGED: The main setup function now accepts db and auth instances
+// The main setup function now accepts db and auth instances
 export function setupWatchlist(database, authentication) {
     db = database;
     auth = authentication;
@@ -40,7 +39,7 @@ export function setupWatchlist(database, authentication) {
     const watchlistForm = document.getElementById('watchlistForm');
     const watchlistContainer = document.getElementById('watchlistContainer');
 
-    // NEW: Listen for authentication changes to load/clear data
+    // Listen for authentication changes to load/clear data
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             // User logged in, load their watchlist
@@ -54,50 +53,59 @@ export function setupWatchlist(database, authentication) {
     });
 
     if (watchlistForm) {
-        watchlistForm.addEventListener('submit', async (e) => { // CHANGED: Made async
+        watchlistForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const stockName = document.getElementById('watchlistStockName').value;
             const targetPrice = parseFloat(document.getElementById('watchlistTargetPrice').value);
 
             if (stockName && !isNaN(targetPrice) && targetPrice > 0) {
-                watchlist.push({ id: Date.now(), name: stockName, target: targetPrice });
-                await saveWatchlistToFirestore(); // CHANGED: Save to Firestore
+                watchlist.push({
+                    id: Date.now(),
+                    name: stockName,
+                    target: targetPrice
+                });
+
+                await saveWatchlistToFirestore(); // Save to Firestore
                 renderWatchlist();
                 watchlistForm.reset();
             } else {
-                showCustomMessage('Please enter a valid stock name and target price.', 'error');
+                showToastNotification('Please enter a valid stock name and target price.', 'error');
             }
         });
     }
 
     function renderWatchlist() {
         if (!watchlistContainer) return;
+
         watchlistContainer.innerHTML = '';
+
         if (watchlist.length === 0) {
-            watchlistContainer.innerHTML = '<div class="text-center text-gray-500 p-4">Your watchlist is empty.</div>';
-        } else {
-            watchlist.forEach(stock => {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'p-3 flex justify-between items-center bg-gray-900 rounded-lg';
-                itemEl.innerHTML = `
-                    <div>
-                        <p class="font-bold text-white">${stock.name}</p>
-                        <p class="text-sm text-gray-400">Target: ₹${stock.target.toFixed(2)}</p>
-                    </div>
-                    <button class="delete-watchlist-btn p-1 text-red-500 hover:text-red-400" data-id="${stock.id}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                `;
-                watchlistContainer.appendChild(itemEl);
-            });
-            document.querySelectorAll('.delete-watchlist-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => { // CHANGED: Made async
-                    const id = Number(e.currentTarget.dataset.id);
-                    watchlist = watchlist.filter(item => item.id !== id);
-                    await saveWatchlistToFirestore(); // CHANGED: Save to Firestore
-                    renderWatchlist();
-                });
-            });
+            watchlistContainer.innerHTML = '<div class="text-center text-gray-400 py-8">No stocks in your watchlist yet. Add one above!</div>';
+            return;
         }
+
+        watchlist.forEach(stock => {
+            const stockEl = document.createElement('div');
+            stockEl.className = 'bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4 flex justify-between items-center';
+            stockEl.innerHTML = `
+                <div>
+                    <h3 class="font-bold text-lg">${stock.name}</h3>
+                    <p class="text-gray-400">Target: ₹${stock.target.toFixed(2)}</p>
+                </div>
+                <button class="remove-watchlist-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm" data-id="${stock.id}">Remove</button>
+            `;
+
+            watchlistContainer.appendChild(stockEl);
+        });
+
+        // Add event listeners for remove buttons
+        document.querySelectorAll('.remove-watchlist-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = Number(e.target.dataset.id);
+                watchlist = watchlist.filter(stock => stock.id !== id);
+                await saveWatchlistToFirestore(); // Save to Firestore
+                renderWatchlist();
+            });
+        });
     }
 }

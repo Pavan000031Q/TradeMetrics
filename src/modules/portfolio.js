@@ -1,8 +1,7 @@
 import { showCustomMessage } from './ui.js';
 // NEW: Import Firestore and AUTH functions
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 // Global variables to hold the portfolio state
 let portfolio = [];
 let tradeHistory = [];
