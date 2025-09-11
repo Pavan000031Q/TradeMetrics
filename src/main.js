@@ -1,26 +1,13 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { 
-    getAuth, 
-    onAuthStateChanged, 
-    createUserWithEmailAndPassword, 
-    updateProfile, 
-    signInWithEmailAndPassword, 
-    signOut, 
-    sendEmailVerification, 
-    sendPasswordResetEmail, 
-    GoogleAuthProvider, 
-    signInWithPopup, 
-    RecaptchaVerifier, 
-    signInWithPhoneNumber 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    getDoc 
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
-// Your existing imports...
+import {
+    getAuth, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile,
+    signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail,
+    GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 import { showPage, setupNav } from './modules/ui.js';
 import { setupCalculators } from './modules/calculators.js';
 import { setupNews } from './modules/news.js';
@@ -29,7 +16,7 @@ import { setupWatchlist } from './modules/watchlist.js';
 import { setupSwingTradeAnalysis } from './modules/aiInsights.js';
 import { fetchMarketData } from './modules/marketData.js';
 
-// Firebase Configuration
+// Initialize Firebase App and Firestore
 const firebaseConfig = {
     apiKey: "AIzaSyBKWVhnyjZq3vgiEmSMJ8XK3pJJduFjv50",
     authDomain: "trademetrics-185f5.firebaseapp.com",
@@ -44,79 +31,17 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- CONSTANTS ---
-const PROTECTED_PAGES = ['swing', 'analyzer', 'portfolio', 'watchlist'];
-
-// --- VALIDATION FUNCTIONS ---
-function validateEmailLogin(email, password) {
-    const errors = [];
-    
-    if (!email || email.trim() === '') {
-        errors.push('Email');
-    }
-    if (!password || password.trim() === '') {
-        errors.push('Password');
-    }
-    
-    if (errors.length > 0) {
-        const message = errors.length === 1 
-            ? `Please enter your ${errors[0]}` 
-            : `Please fill in: ${errors.join(', ')}`;
-        showAuthMessage(message, 'error');
-        return false;
-    }
-    return true;
-}
-
-function validateEmailSignup(email, password, name, dob) {
-    const errors = [];
-    
-    // Required fields for email signup (NO phone number)
-    if (!email || email.trim() === '') errors.push('Email');
-    if (!password || password.trim() === '') errors.push('Password');
-    if (!name || name.trim() === '') errors.push('Full Name');
-    if (!dob || dob.trim() === '') errors.push('Date of Birth');
-    
-    if (errors.length > 0) {
-        const message = errors.length === 1 
-            ? `Please enter your ${errors[0]}` 
-            : `Please fill in: ${errors.join(', ')}`;
-        showAuthMessage(message, 'error');
-        return false;
-    }
-    return true;
-}
-
-function validateProfileCompletion(name, dob) {
-    const errors = [];
-    
-    // Only name and DOB are required - email and phone are optional
-    if (!name || name.trim() === '') errors.push('Full Name');
-    if (!dob || dob.trim() === '') errors.push('Date of Birth');
-    
-    if (errors.length > 0) {
-        const message = errors.length === 1 
-            ? `Please enter your ${errors[0]}` 
-            : `Please fill in: ${errors.join(', ')}`;
-        showToastNotification(message, 'error');
-        return false;
-    }
-    return true;
-}
-
 // --- NOTIFICATION SYSTEMS ---
 export function showToastNotification(message, type = 'success') {
     const container = document.getElementById('notification-container');
     const notif = document.createElement('div');
     notif.className = `notification ${type}`;
-    
-    const iconSvg = type === 'success' 
+    const iconSvg = type === 'success'
         ? `<svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>`
         : `<svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>`;
-    
     notif.innerHTML = `${iconSvg}${message}`;
     container.appendChild(notif);
-    setTimeout(() => notif.remove(), 4000);
+    setTimeout(() => { notif.remove(); }, 4000);
 }
 
 function showAuthMessage(message, type = 'success') {
@@ -130,47 +55,25 @@ function hideAuthMessage() {
     document.getElementById('authMessage').classList.add('hidden');
 }
 
-// --- NAVIGATION SETUP (MOVED OUT OF MODAL) ---
-function setupNavigation() {
-    const navLinks = document.querySelectorAll('[data-page]');
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const pageId = link.getAttribute('data-page');
-            const user = auth.currentUser;
-            const isLoggedIn = !!user;
-            
-            // Check if page requires authentication
-            if (PROTECTED_PAGES.includes(pageId) && !isLoggedIn) {
-                document.getElementById('authModal').style.display = 'flex';
-                showToastNotification('Please log in to access this feature.', 'error');
-            } else {
-                showPage(pageId);
-                // Close mobile menu if it exists
-                document.getElementById('mobile-menu')?.classList.add('hidden');
-            }
-        });
-    });
-}
+// --- Centralized Authentication UI Logic ---
+const PROTECTED_PAGES = ['swing', 'analyzer', 'portfolio', 'watchlist'];
 
-// --- UI STATE MANAGEMENT ---
+const homeBtnActionLogin = () => { document.getElementById('authModal').style.display = 'flex'; };
+const homeBtnActionAnalyze = () => { showPage('analyzer'); };
+
 function updateUIForAuthState(user) {
     const authElements = document.querySelectorAll('.requires-auth');
     const homeActionButton = document.getElementById('home-action-btn');
-    const isLoggedIn = !!user;
-    
-    // Show/hide auth-required elements
+    const isLoggedIn = user;
+
     authElements.forEach(el => {
         isLoggedIn ? el.classList.remove('hidden') : el.classList.add('hidden');
     });
-    
-    // Update home action button
+
     if (homeActionButton) {
-        // Remove existing listeners
         homeActionButton.removeEventListener('click', homeBtnActionLogin);
         homeActionButton.removeEventListener('click', homeBtnActionAnalyze);
-        
+
         if (isLoggedIn) {
             homeActionButton.textContent = 'Start Analyzing';
             homeActionButton.addEventListener('click', homeBtnActionAnalyze);
@@ -181,14 +84,25 @@ function updateUIForAuthState(user) {
     }
 }
 
-// Home button actions
-const homeBtnActionLogin = () => {
-    document.getElementById('authModal').style.display = 'flex';
-};
+function setupNavigation(auth) {
+    const navLinks = document.querySelectorAll('a[data-page]');
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageId = link.getAttribute('data-page');
+            const user = auth.currentUser;
+            const isLoggedIn = user;
 
-const homeBtnActionAnalyze = () => {
-    showPage('analyzer');
-};
+            if (PROTECTED_PAGES.includes(pageId) && !isLoggedIn) {
+                document.getElementById('authModal').style.display = 'flex';
+                showToastNotification('Please log in to access this feature.', 'error');
+            } else {
+                showPage(pageId);
+                document.getElementById('mobile-menu')?.classList.add('hidden');
+            }
+        });
+    });
+}
 
 // --- AUTHENTICATION MODAL LOGIC ---
 function setupAuthModal() {
@@ -199,21 +113,26 @@ function setupAuthModal() {
     const profileDropdown = document.getElementById('profile-dropdown');
     const profileContent = document.getElementById('profile-content');
     const dropdownUserName = document.getElementById('dropdown-user-name');
-    
     const defaultProfileIcon = `<svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>`;
-    
+
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
     const signInFormEl = document.getElementById('signInForm');
     const signUpFormEl = document.getElementById('signUpForm');
     const googleSignInBtn = document.getElementById('google-signin-btn');
-    
+
+    // DOB Modal elements
+    const dobModal = document.getElementById('dobModal');
+    const dobForm = document.getElementById('dobForm');
+    const dobInput = document.getElementById('dobInput');
+
     // User Info Collection Modal elements
     const userInfoModal = document.getElementById('userInfoModal');
     const userInfoForm = document.getElementById('userInfoForm');
     const userInfoNameInput = document.getElementById('userInfoName');
     const userInfoDobInput = document.getElementById('userInfoDob');
-    
+    const userInfoEmailInput = document.getElementById('userInfoEmail');
+
     // Phone Auth elements
     const emailAuthContainer = document.getElementById('email-auth-container');
     const phoneAuthContainer = document.getElementById('phone-auth-container');
@@ -224,7 +143,7 @@ function setupAuthModal() {
     const showPhoneLoginTab = document.getElementById('show-phone-login-tab');
     const showEmailLoginTab = document.getElementById('show-email-login-tab');
     const backToEmailBtn = document.getElementById('backToEmailBtn');
-    
+
     let confirmationResult = null;
     let recaptchaVerifier = null;
     let isRecaptchaInitialized = false;
@@ -236,68 +155,96 @@ function setupAuthModal() {
         if (otpForm) otpForm.classList.add('hidden');
         if (phoneSignInForm) phoneSignInForm.classList.remove('hidden');
         hideAuthMessage();
-        
+
+        // Reset reCAPTCHA if it exists
         if (recaptchaVerifier) {
             recaptchaVerifier.clear();
             isRecaptchaInitialized = false;
         }
     }
 
-    // Initialize RecaptchaVerifier
+    // Function to initialize RecaptchaVerifier
     const initializeRecaptcha = () => {
         if (!isRecaptchaInitialized) {
             const recaptchaContainer = document.getElementById('recaptcha-container');
             if (recaptchaContainer) {
+                // Ensure the container is empty before rendering
                 recaptchaContainer.innerHTML = '';
                 recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
                     'size': 'normal',
                     'callback': (response) => {
-                        // reCAPTCHA solved
+                        // reCAPTCHA solved, allow signInWithPhoneNumber.
                     },
                     'expired-callback': () => {
                         showToastNotification('reCAPTCHA expired. Please try again.', 'error');
-                        recaptchaVerifier.render();
-                    }
+                        recaptchaVerifier.render(); // Force a new challenge on expiry
+                    },
+                    'appVerificationDisabledForTesting': true
                 });
                 recaptchaVerifier.render();
                 isRecaptchaInitialized = true;
             } else {
-                showToastNotification('Error: reCAPTCHA container not found. Please refresh the page.', 'error');
+                showToastNotification("Error: reCAPTCHA container not found. Please refresh the page.", 'error');
             }
         }
     };
 
-    // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
         updateUIForAuthState(user);
         const isLoggedIn = !!user;
-        
+
         if (isLoggedIn) {
             authModal.style.display = 'none';
             const name = user.displayName || 'User';
-            profileContent.innerHTML = name;
+            profileContent.innerHTML = `${name}`;
             dropdownUserName.textContent = `Welcome, ${name}`;
-            
+
             // Check if user data exists in Firestore
             const userDocRef = doc(db, 'users', user.uid);
             const docSnap = await getDoc(userDocRef);
+
+            // Check if the user's profile is complete
+            const isProfileCompleted = docSnap.exists() && docSnap.data().profileCompleted;
             
-            if (!docSnap.exists() || !docSnap.data()?.profileCompleted) {
-                // NEW ACCOUNT or INCOMPLETE PROFILE
+            if (!isProfileCompleted) {
                 userInfoModal.style.display = 'flex';
                 
-                // Pre-fill name if available from Google/existing auth
+                // --- NEW LOGIC TO HIDE EMAIL FIELD AND MANIPULATE REQUIRED ATTRIBUTE ---
+                const emailInputContainer = document.getElementById('email-input-container');
+                const emailInput = document.getElementById('userInfoEmail');
+                
+                const providerId = user.providerData[0]?.providerId;
+                if (providerId === 'google.com' || providerId === 'password') {
+                    emailInputContainer.style.display = 'none';
+                    if (emailInput) {
+                        emailInput.removeAttribute('required');
+                    }
+                } else {
+                    emailInputContainer.style.display = 'block';
+                    if (emailInput) {
+                        emailInput.setAttribute('required', 'required');
+                    }
+                }
+                
+                // Pre-fill existing data if available from Firebase or Firestore
                 if (user.displayName) {
                     userInfoNameInput.value = user.displayName;
                 }
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    if (userData.name) {
+                        userInfoNameInput.value = userData.name;
+                    }
+                    if (userData.dob) {
+                        userInfoDobInput.value = userData.dob;
+                    }
+                }
             } else {
-                userInfoModal.style.display = 'none';
+                userInfoModal.style.display = 'none'; // Ensure modal is hidden for existing, complete profiles
             }
         } else {
             profileContent.innerHTML = defaultProfileIcon;
             profileDropdown.classList.add('hidden');
-            
-            // Redirect to home if on protected page
             const currentPage = document.querySelector('.page-content[style*="block"]');
             if (currentPage && PROTECTED_PAGES.includes(currentPage.id)) {
                 showPage('home');
@@ -306,7 +253,6 @@ function setupAuthModal() {
         }
     });
 
-    // Modal Controls
     if (profileBtn) {
         profileBtn.addEventListener('click', () => {
             if (auth.currentUser) {
@@ -319,98 +265,57 @@ function setupAuthModal() {
     }
 
     if (closeAuthModalBtn) {
-        closeAuthModalBtn.addEventListener('click', () => {
-            authModal.style.display = 'none';
-            resetAuthForms();
-        });
+        closeAuthModalBtn.addEventListener('click', () => { authModal.style.display = 'none'; resetAuthForms(); });
     }
 
     // Close modal when clicking outside
     window.addEventListener('click', (event) => {
-        if (event.target === authModal) {
-            authModal.style.display = 'none';
-            resetAuthForms();
-        }
-        
-        // Close profile dropdown when clicking outside
+        if (event.target === authModal) { authModal.style.display = 'none'; resetAuthForms(); }
         if (profileBtn && !profileBtn.contains(event.target) && !profileDropdown.contains(event.target)) {
             profileDropdown.classList.add('hidden');
         }
-        
-        // Handle user info modal
         if (event.target === userInfoModal) {
-            // Don't allow closing by clicking outside - they need to complete profile
+            // Check if this is a new user who hasn't completed profile
             showToastNotification('Please complete your profile to continue.', 'error');
         }
     });
 
-    // Form Switching
-    document.getElementById('show-signup-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        loginForm.classList.add('hidden');
-        signupForm.classList.remove('hidden');
-        resetAuthForms();
-    });
+    document.getElementById('show-signup-btn').addEventListener('click', (e) => { e.preventDefault(); loginForm.classList.add('hidden'); signupForm.classList.remove('hidden'); resetAuthForms(); });
+    document.getElementById('show-login-btn').addEventListener('click', (e) => { e.preventDefault(); signupForm.classList.add('hidden'); loginForm.classList.remove('hidden'); resetAuthForms(); });
 
-    document.getElementById('show-login-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        signupForm.classList.add('hidden');
-        loginForm.classList.remove('hidden');
-        resetAuthForms();
-    });
-
-    // Email Signup with Validation
     signUpFormEl.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('signup-email').value;
         const password = document.getElementById('signup-password').value;
         const name = document.getElementById('signup-name').value;
         const dobString = document.getElementById('signup-dob').value;
-        
-        // Validate email signup fields - NO phone number required
-        if (!validateEmailSignup(email, password, name, dobString)) {
-            return;
-        }
 
-        // Validate DOB format
         const parts = dobString.split('-');
-        if (parts.length !== 3) {
-            showAuthMessage('Please enter DOB as DD-MM-YYYY', 'error');
-            return;
-        }
+        if (parts.length !== 3) { showAuthMessage('Please enter DOB as DD-MM-YYYY', 'error'); return; }
 
         const [day, month, year] = parts.map(p => parseInt(p, 10));
         const dob = new Date(year, month - 1, day);
-        if (isNaN(dob.getTime())) {
-            showAuthMessage('Invalid Date of Birth.', 'error');
-            return;
-        }
+
+        if (isNaN(dob.getTime())) { showAuthMessage('Invalid Date of Birth.', 'error'); return; }
 
         const age = Math.abs(new Date(Date.now() - dob.getTime()).getUTCFullYear() - 1970);
-        if (age < 16) {
-            showAuthMessage('You must be at least 16 years old.', 'error');
-            return;
-        }
+        if (age < 16) { showAuthMessage('You must be at least 16 years old.', 'error'); return; }
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            
             await updateProfile(user, { displayName: name });
-            
-            await setDoc(doc(db, 'users', user.uid), {
-                name,
-                dob: dobString,
-                email: user.email,
-                createdAt: new Date(),
+            await setDoc(doc(db, "users", user.uid), { 
+                name, 
+                dob: dobString, 
+                email: user.email, 
+                createdAt: new Date(), 
                 authMethod: 'email',
-                profileCompleted: true // Set to true for email signup
+                profileCompleted: true
             });
-            
             await sendEmailVerification(user);
             showAuthMessage('Account created! Please check your email to verify.', 'success');
             await signOut(auth);
-            
             signupForm.classList.add('hidden');
             loginForm.classList.remove('hidden');
         } catch (error) {
@@ -418,16 +323,10 @@ function setupAuthModal() {
         }
     });
 
-    // Email Sign-in with Validation
     signInFormEl.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        
-        // Validate ONLY email and password - skip phone number
-        if (!validateEmailLogin(email, password)) {
-            return;
-        }
 
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -441,16 +340,11 @@ function setupAuthModal() {
         }
     });
 
-    // Forgot Password
     document.getElementById('forgot-password-link').addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
-        
-        if (!email) {
-            showAuthMessage('Please enter your email to reset password.', 'error');
-            return;
-        }
-        
+        if (!email) { showAuthMessage('Please enter your email to reset password.', 'error'); return; }
+
         try {
             await sendPasswordResetEmail(auth, email);
             showAuthMessage('Password reset email sent! Check your inbox.', 'success');
@@ -459,48 +353,41 @@ function setupAuthModal() {
         }
     });
 
-    // Google Sign-in
+    // Google Sign-in Logic
     if (googleSignInBtn) {
         googleSignInBtn.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                
-                const userDocRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userDocRef);
-                
-                if (!docSnap.exists()) {
-                    // New user, show profile completion modal
-                    userInfoModal.style.display = 'flex';
-                    if (user.displayName) {
-                        userInfoNameInput.value = user.displayName;
-                    }
-                }
+                await signInWithPopup(auth, provider);
             } catch (error) {
                 showAuthMessage(`Google sign-in failed: ${error.message}`, 'error');
             }
         });
     }
 
-    // Updated User Info Collection Logic
+    // User Info Collection Logic
     if (userInfoForm) {
         userInfoForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = userInfoNameInput.value.trim();
             const dobString = userInfoDobInput.value.trim();
             
-            // Get optional email and phone values
-            const emailInput = document.getElementById('userInfoEmail');
-            const phoneInput = document.getElementById('userInfoPhone');
-            const email = emailInput ? emailInput.value.trim() : '';
-            const phone = phoneInput ? phoneInput.value.trim() : '';
+            // Get email value only if the input is visible
+            const email = userInfoEmailInput?.value?.trim() || auth.currentUser.email || '';
             
-            // Only validate required fields (name and DOB)
-            if (!validateProfileCompletion(name, dobString)) {
+            // Validate name
+            if (!name) {
+                showToastNotification('Please enter your full name.', 'error');
                 return;
             }
             
+            // Validate email if the field is visible
+            const emailInputContainer = document.getElementById('email-input-container');
+            if (emailInputContainer && emailInputContainer.style.display !== 'none' && !email) {
+                 showToastNotification('Please enter your email address.', 'error');
+                return;
+            }
+
             // Validate DOB format
             const parts = dobString.split('-');
             if (parts.length !== 3) {
@@ -510,6 +397,7 @@ function setupAuthModal() {
             
             const [day, month, year] = parts.map(p => parseInt(p, 10));
             const dob = new Date(year, month - 1, day);
+            
             if (isNaN(dob.getTime())) {
                 showToastNotification('Invalid Date of Birth.', 'error');
                 return;
@@ -525,7 +413,6 @@ function setupAuthModal() {
                 const user = auth.currentUser;
                 const userDocRef = doc(db, 'users', user.uid);
                 
-                // Determine authentication method
                 let authMethod = 'email';
                 if (user.providerData.some(p => p.providerId === 'google.com')) {
                     authMethod = 'google';
@@ -533,43 +420,24 @@ function setupAuthModal() {
                     authMethod = 'phone';
                 }
                 
-                // Update user profile displayName
                 await updateProfile(user, { displayName: name });
                 
-                // Save user data - email and phone can be empty
-                const userData = {
-                    name: name,
+                await setDoc(userDocRef, { 
+                    name: name, 
                     dob: dobString,
+                    email: email,
+                    phone: user.phoneNumber || '',
                     createdAt: new Date(),
                     authMethod: authMethod,
-                    profileCompleted: true  // Always set to true regardless of empty optional fields
-                };
+                    profileCompleted: true
+                }, { merge: true });
                 
-                // Add email if provided or from Firebase auth
-                if (email) {
-                    userData.email = email;
-                } else if (user.email) {
-                    userData.email = user.email;
-                }
-                
-                // Add phone if provided or from Firebase auth  
-                if (phone) {
-                    userData.phone = phone;
-                } else if (user.phoneNumber) {
-                    userData.phone = user.phoneNumber;
-                }
-                
-                await setDoc(userDocRef, userData, { merge: true });
-                
-                // Close modal and show success
                 userInfoModal.style.display = 'none';
                 showToastNotification('Profile information saved successfully!', 'success');
                 
-                // Update UI with new name
-                profileContent.innerHTML = name;
+                profileContent.innerHTML = `${name}`;
                 dropdownUserName.textContent = `Welcome, ${name}`;
                 
-                // Clear form
                 userInfoForm.reset();
                 
             } catch (error) {
@@ -579,50 +447,47 @@ function setupAuthModal() {
         });
     }
 
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => { e.preventDefault(); signOut(auth); });
+    }
+
     // Phone Authentication Logic
-    if (showPhoneLoginTab) {
-        showPhoneLoginTab.addEventListener('click', () => {
-            emailAuthContainer.classList.add('hidden');
-            phoneAuthContainer.classList.remove('hidden');
-            showEmailLoginTab.classList.remove('active');
-            showPhoneLoginTab.classList.add('active');
-            resetAuthForms();
-            initializeRecaptcha();
-        });
-    }
+    showPhoneLoginTab.addEventListener('click', () => {
+        emailAuthContainer.classList.add('hidden');
+        phoneAuthContainer.classList.remove('hidden');
+        showEmailLoginTab.classList.remove('active');
+        showPhoneLoginTab.classList.add('active');
+        resetAuthForms();
+        initializeRecaptcha();
+    });
 
-    if (showEmailLoginTab) {
-        showEmailLoginTab.addEventListener('click', () => {
-            phoneAuthContainer.classList.add('hidden');
-            emailAuthContainer.classList.remove('hidden');
-            showPhoneLoginTab.classList.remove('active');
-            showEmailLoginTab.classList.add('active');
-            resetAuthForms();
-        });
-    }
+    showEmailLoginTab.addEventListener('click', () => {
+        phoneAuthContainer.classList.add('hidden');
+        emailAuthContainer.classList.remove('hidden');
+        showPhoneLoginTab.classList.remove('active');
+        showEmailLoginTab.classList.add('active');
+        resetAuthForms();
+    });
 
-    if (backToEmailBtn) {
-        backToEmailBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            phoneAuthContainer.classList.add('hidden');
-            emailAuthContainer.classList.remove('hidden');
-            showPhoneLoginTab.classList.remove('active');
-            showEmailLoginTab.classList.add('active');
-            resetAuthForms();
-        });
-    }
+    backToEmailBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        phoneAuthContainer.classList.add('hidden');
+        emailAuthContainer.classList.remove('hidden');
+        showPhoneLoginTab.classList.remove('active');
+        showEmailLoginTab.classList.add('active');
+        resetAuthForms();
+    });
 
-    // Phone Sign-in Form
     if (phoneSignInForm) {
         phoneSignInForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const phoneNumber = '+91' + phoneNumberInput.value;
-            
+            const phoneNumber = `+91${phoneNumberInput.value}`;
+
             try {
                 if (!recaptchaVerifier || !recaptchaVerifier.verify) {
                     throw new Error('reCAPTCHA not ready. Please wait a moment and try again.');
                 }
-                
+
                 confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
                 showToastNotification('OTP sent to your phone!', 'success');
                 phoneSignInForm.classList.add('hidden');
@@ -636,43 +501,24 @@ function setupAuthModal() {
         });
     }
 
-    // OTP Verification
     if (otpForm) {
         otpForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const code = otpCodeInput.value;
-            
+
             if (!confirmationResult) {
                 showToastNotification('Something went wrong. Please try again.', 'error');
                 return;
             }
-            
+
             try {
-                const result = await confirmationResult.confirm(code);
-                const user = result.user;
-                
-                const userDocRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userDocRef);
-                
-                if (!docSnap.exists()) {
-                    // New user, show profile completion modal
-                    userInfoModal.style.display = 'flex';
-                } else {
-                    showToastNotification('Signed in successfully!', 'success');
-                    authModal.style.display = 'none';
-                    resetAuthForms();
-                }
+                await confirmationResult.confirm(code);
+                showToastNotification('Signed in successfully!', 'success');
+                authModal.style.display = 'none';
+                resetAuthForms();
             } catch (error) {
                 showToastNotification('Invalid OTP. Please try again.', 'error');
             }
-        });
-    }
-
-    // Logout
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            signOut(auth);
         });
     }
 }
@@ -680,7 +526,7 @@ function setupAuthModal() {
 // --- MAIN APPLICATION SETUP ---
 function setupApplication() {
     setupNav();
-    setupNavigation(); // Now properly called outside of modal
+    setupNavigation(auth);
     setupCalculators();
     setupNews();
     setupPortfolio(db, auth);

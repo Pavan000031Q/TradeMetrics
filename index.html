@@ -102,14 +102,6 @@
                 </div>
             </section>
         </div>
-        <div id="intraday" class="page-content" style="display:none;">
-            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Intraday Trading Insights</h2>
-            <div class="text-center text-gray-400 mt-16">
-                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <p class="text-xl mt-4">This feature is currently under development.</p>
-                <p class="mt-2">Stay tuned for future updates!</p>
-            </div>
-        </div>
         <div id="swing" class="page-content" style="display:none;">
             <h2 class="text-3xl font-bold text-center mb-8 primary-text">Swing Trading Analysis</h2>
             <div class="max-w-4xl mx-auto p-6 md:p-8 rounded-lg border border-gray-800 bg-black">
@@ -161,14 +153,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div id="investment" class="page-content" style="display:none;">
-            <h2 class="text-3xl font-bold text-center mb-8 primary-text">Long-Term Investment Advice</h2>
-            <div class="text-center text-gray-400 mt-16">
-                <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <p class="text-xl mt-4">This feature is currently under development.</p>
-                <p class="mt-2">Stay tuned for future updates!</p>
             </div>
         </div>
         <div id="analyzer" class="page-content" style="display:none;">
@@ -382,11 +366,15 @@
     <div id="userInfoModal" class="modal" style="display:none;">
         <div class="modal-content-auth relative">
             <h2 class="text-2xl font-bold text-center primary-text mb-6">Complete Your Profile</h2>
-            <p class="text-center text-gray-400 mb-6">Please provide your name and date of birth to continue.</p>
+            <p class="text-center text-gray-400 mb-6">Please provide your name, email, and date of birth to continue.</p>
             <form id="userInfoForm" class="space-y-4">
                 <div>
                     <label for="userInfoName" class="sr-only">Full Name</label>
                     <input id="userInfoName" name="name" type="text" required class="auth-input" placeholder="Full Name">
+                </div>
+                <div id="email-input-container">
+                    <label for="userInfoEmail" class="sr-only">Email</label>
+                    <input id="userInfoEmail" name="email" type="email" required class="auth-input" placeholder="Email Address">
                 </div>
                 <div>
                     <label for="userInfoDob" class="sr-only">Date of Birth</label>
