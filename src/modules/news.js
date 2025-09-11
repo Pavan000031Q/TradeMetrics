@@ -10,7 +10,7 @@ const NEWS_FEEDS = [
     { name: 'The Hindu Business Line', url: 'https://www.thehindubusinessline.com/news/fe/feed/' }
 ];
 const CORS_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
-const MAX_ARTICLES_TO_STORE = 200; // Limit to prevent unlimited document growth
+const MAX_ARTICLES_TO_STORE = 200; 
 const DB_NAME = 'TradeMetricsNewsDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'newsCache';
@@ -66,7 +66,7 @@ async function loadNewsFromDB() {
             resolve(request.result ? request.result.articles : []);
         };
         request.onerror = () => {
-            resolve([]); // Resolve with empty array on error
+            resolve([]); 
         };
     });
 }
@@ -76,7 +76,6 @@ async function fetchAndRenderNews() {
     const newsContainer = document.getElementById('news-container');
     if (!newsContainer) return;
 
-    // Display cached news immediately
     displayNews(allNewsCache);
     if (allNewsCache.length === 0) {
         newsContainer.innerHTML = '<div class="col-span-full text-center p-4"><div class="loader"></div><p class="text-gray-400 mt-2">Fetching live news...</p></div>';
@@ -121,7 +120,7 @@ function displayNews(newsData, filter = '') {
     filteredNews.forEach(article => {
         const newsEl = document.createElement('div');
         newsEl.className = 'news-card bg-black border border-gray-800 rounded-lg p-4 flex flex-col hover:border-daa520 transition-colors duration-200 cursor-pointer';
-        // Check if article is valid before setting dataset
+       
         if (article) {
              newsEl.dataset.content = JSON.stringify(article);
         }
@@ -145,7 +144,6 @@ function displayNews(newsData, filter = '') {
 
     document.querySelectorAll('.news-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            // FIX: Add a check to ensure dataset exists before accessing it
             if (e.currentTarget.dataset && e.currentTarget.dataset.content) {
                 const articleData = JSON.parse(e.currentTarget.dataset.content);
                 openFullArticleModal(articleData);
@@ -156,17 +154,18 @@ function displayNews(newsData, filter = '') {
     });
 }
 
-export async function setupNews() {
-    await initDB(); // Initialize the database first
-    allNewsCache = await loadNewsFromDB(); // Load news from the local DB
-    fetchAndRenderNews(); // Then fetch new articles
+export function setupNews() {
+    initDB(); 
+    loadNewsFromDB().then(cachedNews => {
+        allNewsCache = cachedNews;
+        fetchAndRenderNews(); 
+    });
     
     const newsSearchInput = document.getElementById('newsSearchInput');
     newsSearchInput.addEventListener('input', (e) => {
         displayNews(allNewsCache, e.target.value);
     });
     
-    // Refresh news every 30 minutes
     setInterval(fetchAndRenderNews, 1800000);
 }
 
@@ -238,6 +237,5 @@ async function fetchAllNews() {
             console.error(`Error fetching news from ${feed.name}:`, error);
         }
     }
-    // Sort all fetched news by date before returning
     return allNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 }

@@ -206,10 +206,11 @@ function setupAuthModal() {
             // Check if the user's profile is complete
             const isProfileCompleted = docSnap.exists() && docSnap.data().profileCompleted;
             
-            if (!isProfileCompleted) {
+            // Check if email is verified for email/password and if profile is not completed for other methods
+            const isEmailPasswordUser = user.providerData.some(p => p.providerId === 'password');
+            if ((isEmailPasswordUser && !user.emailVerified) || !isProfileCompleted) {
                 userInfoModal.style.display = 'flex';
                 
-                // --- NEW LOGIC TO HIDE EMAIL FIELD AND MANIPULATE REQUIRED ATTRIBUTE ---
                 const emailInputContainer = document.getElementById('email-input-container');
                 const emailInput = document.getElementById('userInfoEmail');
                 
@@ -240,7 +241,7 @@ function setupAuthModal() {
                     }
                 }
             } else {
-                userInfoModal.style.display = 'none'; // Ensure modal is hidden for existing, complete profiles
+                userInfoModal.style.display = 'none';
             }
         } else {
             profileContent.innerHTML = defaultProfileIcon;
@@ -275,7 +276,6 @@ function setupAuthModal() {
             profileDropdown.classList.add('hidden');
         }
         if (event.target === userInfoModal) {
-            // Check if this is a new user who hasn't completed profile
             showToastNotification('Please complete your profile to continue.', 'error');
         }
     });
@@ -305,6 +305,7 @@ function setupAuthModal() {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             await updateProfile(user, { displayName: name });
+            
             await setDoc(doc(db, "users", user.uid), { 
                 name, 
                 dob: dobString, 
@@ -313,6 +314,7 @@ function setupAuthModal() {
                 authMethod: 'email',
                 profileCompleted: true
             });
+            
             await sendEmailVerification(user);
             showAuthMessage('Account created! Please check your email to verify.', 'success');
             await signOut(auth);
@@ -528,7 +530,7 @@ function setupApplication() {
     setupNav();
     setupNavigation(auth);
     setupCalculators();
-    setupNews();
+    setupNews(db);
     setupPortfolio(db, auth);
     setupWatchlist(db, auth);
     setupSwingTradeAnalysis();
